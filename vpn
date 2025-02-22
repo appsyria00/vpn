@@ -1,0 +1,18 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Test Camera</title>
+</head>
+<body>
+    <video id="video" width="640" height="480" autoplay></video>
+    <script>
+        navigator.mediaDevices.getUserMedia({ video: true })
+        .then(function(stream) {
+            document.getElementById('video').srcObject = stream;
+        })
+        .catch(function(err) {
+            console.log("Camera access denied!", err);
+        });
+    </script>
+</body>
+</html>
