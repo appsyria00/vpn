@@ -1,0 +1,49 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>نظام المواعيد الاحترافي</title>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: linear-gradient(135deg, #667eea 0%, #764ba2 100%); height: 100vh; display: flex; justify-content: center; align-items: center; margin: 0; }
+        .card { background: white; padding: 2rem; border-radius: 15px; box-shadow: 0 10px 25px rgba(0,0,0,0.2); width: 350px; text-align: center; }
+        input, select { width: 100%; padding: 10px; margin: 10px 0; border: 1px solid #ddd; border-radius: 8px; box-sizing: border-box; }
+        button { background: #764ba2; color: white; border: none; padding: 12px; width: 100%; border-radius: 8px; cursor: pointer; font-size: 16px; transition: 0.3s; }
+        button:hover { background: #667eea; }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <h2>حجز موعد جديد</h2>
+        <input type="text" id="name" placeholder="الاسم الكامل">
+        <input type="tel" id="phone" placeholder="رقم الهاتف">
+        <input type="date" id="date">
+        <select id="service">
+            <option value="استشارة">استشارة</option>
+            <option value="صيانة">صيانة</option>
+            <option value="طلب جديد">طلب جديد</option>
+        </select>
+        <button onclick="submitBooking()">تأكيد الحجز</button>
+    </div>
+
+    <script>
+        async function submitBooking() {
+            const url = "رابط_الـ_DEPLOY_الخاص_بك"; // ضع هنا الرابط الذي حصلت عليه من Apps Script
+            const data = {
+                name: document.getElementById('name').value,
+                phone: document.getElementById('phone').value,
+                date: document.getElementById('date').value,
+                service: document.getElementById('service').value
+            };
+
+            Swal.fire({ title: 'جاري الإرسال...', didOpen: () => { Swal.showLoading() } });
+
+            try {
+                await fetch(url, { method: 'POST', body: JSON.stringify(data) });
+                Swal.fire('تم بنجاح!', 'تم تسجيل موعدك وإرسال إشعار للمسؤول', 'success');
+            } catch (e) {
+                Swal.fire('خطأ!', 'حدث خطأ في الاتصال', 'error');
+            }
+        }
+    </script>
+</body>
+</html>
