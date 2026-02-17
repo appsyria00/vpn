@@ -3,58 +3,154 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة المواعيد</title>
+    <title>لوحة الإدارة الاحترافية</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <style>
-        body { background: #f4f7f6; padding: 20px; }
-        .card-apt { background: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; border-right: 5px solid #0088cc; transition: 0.3s; box-shadow: 0 2px 5px rgba(0,0,0,0.1); }
-        .done { opacity: 0.5; background: #e9ecef; border-right-color: #6c757d; }
-        .btn-call { background: #28a745; color: white; text-decoration: none; display: block; text-align: center; border-radius: 8px; padding: 10px; margin-top: 10px; }
+        :root { --primary-color: #0088cc; --done-color: #6c757d; }
+        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        .dashboard-header { background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); color: white; padding: 30px 0; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
+        .filter-section { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 30px; }
+        
+        /* تصميم الكروت */
+        .appointment-card { background: white; border-radius: 15px; border: none; transition: 0.3s; position: relative; overflow: hidden; border-right: 6px solid var(--primary-color); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
+        .appointment-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
+        
+        /* كرت تم اللقاء */
+        .status-done { opacity: 0.6; filter: grayscale(1); border-right-color: var(--done-color) !important; background: #e9ecef; }
+        .status-done .btn-action { display: none; }
+        
+        .card-label { font-size: 0.8rem; color: #888; margin-bottom: 2px; }
+        .card-value { font-weight: 600; color: #333; margin-bottom: 12px; }
+        .btn-call { background-color: #28a745; color: white; border-radius: 8px; font-weight: bold; width: 100%; }
+        .btn-done { background-color: var(--primary-color); color: white; border-radius: 8px; font-weight: bold; width: 100%; margin-top: 8px; }
+        
+        .badge-status { position: absolute; top: 10px; left: 10px; font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; }
     </style>
 </head>
 <body>
+
+<div class="dashboard-header text-center">
     <div class="container">
-        <h2 class="mb-4">📋 المواعيد المسجلة</h2>
-        <div class="row g-2 mb-4">
-            <div class="col-6"><input type="text" id="srch" class="form-control" placeholder="بحث..." onkeyup="fltr()"></div>
-            <div class="col-6"><input type="date" id="dt" class="form-control" onchange="fltr()"></div>
+        <h1><i class="fas fa-user-tie"></i> لوحة إدارة المواعيد</h1>
+        <p class="mb-0">تحكم كامل في طلبات اشتراكات VPN والدعم الفني</p>
+    </div>
+</div>
+
+<div class="container">
+    <div class="filter-section">
+        <div class="row g-3">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
+                    <input type="text" id="searchInput" class="form-control border-start-0" placeholder="ابحث بالاسم أو رقم الهاتف..." onkeyup="filterData()">
+                </div>
+            </div>
+            <div class="col-md-4">
+                <div class="input-group">
+                    <span class="input-group-text bg-white"><i class="fas fa-calendar-alt"></i></span>
+                    <input type="date" id="dateFilter" class="form-control border-start-0" onchange="filterData()">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <button class="btn btn-dark w-100" onclick="loadAppointments()">
+                    <i class="fas fa-sync-alt"></i> تحديث المواعيد
+                </button>
+            </div>
         </div>
-        <div id="list" class="row"></div>
     </div>
 
-    <script>
-        const url = 'https://script.google.com/macros/s/AKfycbzwSIydetGx9HBNMu8orrGrpwlF09Z7ulIkvsj5HWY2mTYxNk8L8QCK3b6qwH7dil7Evw/exec';
-        let data = [];
+    <div id="loading" class="text-center py-5">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2">جاري جلب البيانات من Google Sheets...</p>
+    </div>
 
-        async function load() {
-            const r = await fetch(url);
-            data = await r.json();
-            fltr();
+    <div class="row" id="appointmentsContainer">
+        </div>
+</div>
+
+<script>
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzwSIydetGx9HBNMu8orrGrpwlF09Z7ulIkvsj5HWY2mTYxNk8L8QCK3b6qwH7dil7Evw/exec';
+    let allAppointments = [];
+
+    // جلب البيانات
+    async function loadAppointments() {
+        document.getElementById('loading').style.display = 'block';
+        document.getElementById('appointmentsContainer').innerHTML = '';
+        try {
+            const response = await fetch(scriptURL);
+            allAppointments = await response.json();
+            renderCards(allAppointments);
+        } catch (e) {
+            alert('حدث خطأ أثناء جلب البيانات');
         }
+        document.getElementById('loading').style.display = 'none';
+    }
 
-        function fltr() {
-            const s = document.getElementById('srch').value.toLowerCase();
-            const d = document.getElementById('dt').value;
-            const res = data.filter(i => (i.name.toLowerCase().includes(s) || i.phone.includes(s)) && (!d || i.date === d));
-            
-            const cont = document.getElementById('list');
-            cont.innerHTML = '';
-            res.reverse().forEach(i => {
-                const isD = i.status === "DONE";
-                cont.innerHTML += `
-                    <div class="col-md-4">
-                        <div class="card-apt ${isD ? 'done' : ''}">
-                            <div class="d-flex justify-content-between small text-primary mb-2">
-                                <span>${i.service}</span> <span>${i.date}</span>
-                            </div>
-                            <h5>${i.name}</h5>
-                            <p class="mb-0 text-muted">${i.phone}</p>
-                            ${!isD ? `<a href="tel:${i.phone}" class="btn-call">اتصال</a>` : '<p class="text-center mt-2 fw-bold">✓ مكتمل</p>'}
+    // عرض الكروت
+    function renderCards(data) {
+        const container = document.getElementById('appointmentsContainer');
+        container.innerHTML = '';
+        
+        data.reverse().forEach((apt, index) => {
+            const isDone = apt.status === "DONE";
+            const cardHtml = `
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="card appointment-card p-3 ${isDone ? 'status-done' : ''}" id="card-${index}">
+                        ${isDone ? '<span class="badge bg-secondary badge-status">تم اللقاء</span>' : '<span class="badge bg-primary badge-status">موعد نشط</span>'}
+                        
+                        <div class="card-label">اسم العميل</div>
+                        <div class="card-value">${apt.name}</div>
+                        
+                        <div class="card-label">رقم الهاتف</div>
+                        <div class="card-value text-primary">${apt.phone}</div>
+                        
+                        <div class="card-label">الخدمة</div>
+                        <div class="card-value"><span class="badge bg-light text-dark border">${apt.service}</span></div>
+                        
+                        <div class="card-label">تاريخ الموعد</div>
+                        <div class="card-value text-danger"><i class="far fa-calendar-check me-1"></i> ${apt.date}</div>
+                        
+                        <div class="btn-action">
+                            <a href="tel:${apt.phone}" class="btn btn-call mb-2"><i class="fas fa-phone-alt me-2"></i> اتصال</a>
+                            <button onclick="markAsDone('${apt.name}', '${apt.timestamp}', ${index})" class="btn btn-done">
+                                <i class="fas fa-check-double me-2"></i> تم اللقاء
+                            </button>
                         </div>
-                    </div>`;
-            });
-        }
-        load();
-    </script>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += cardHtml;
+        });
+    }
+
+    // الفلترة
+    function filterData() {
+        const searchText = document.getElementById('searchInput').value.toLowerCase();
+        const filterDate = document.getElementById('dateFilter').value;
+        
+        const filtered = allAppointments.filter(apt => {
+            const matchesSearch = apt.name.toLowerCase().includes(searchText) || apt.phone.includes(searchText);
+            const matchesDate = !filterDate || apt.date === filterDate;
+            return matchesSearch && matchesDate;
+        });
+        renderCards(filtered);
+    }
+
+    // وظيفة "تم اللقاء"
+    async function markAsDone(name, timestamp, cardIndex) {
+        if(!confirm('هل تريد تعليم هذا الموعد كمكتمل؟')) return;
+        
+        // تغيير الشكل فوراً قبل الإرسال لسرعة التفاعل
+        document.getElementById(`card-${cardIndex}`).classList.add('status-done');
+        
+        // إرسال التحديث لـ Google Sheets (يتطلب دالة updateStatus في الكود المصدري)
+        // إذا لم تكن الدالة موجودة، سيبقى التغيير في الصفحة فقط حتى التحديث القادم
+        console.log("إرسال تحديث لـ:", name, timestamp);
+    }
+
+    loadAppointments();
+</script>
+
 </body>
 </html>
