@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>نظام حجز المواعيد الذكي</title>
+    <title>حجز مواعيد إدارة منطقة التل المدنية</title>
     
     <link rel="manifest" href="manifest.json">
     <meta name="theme-color" content="#0088cc">
@@ -81,8 +81,8 @@
             <input type="tel" id="phone" class="form-control" placeholder="رقم الهاتف" required>
             <input type="date" id="date" class="form-control" required>
             <select id="service" class="form-select">
-                <option value="اشتراك VPN">اشتراك VPN</option>
-                <option value="دعم فني">دعم فني</option>
+                <option value="مستعجل">مستعجل</option>
+                <option value="سؤال عام">سؤال عام</option>
                 <option value="استشارة">استشارة</option>
             </select>
             <button type="submit" class="btn-submit shadow">تأكيد الحجز وإرسال</button>
@@ -114,7 +114,7 @@
 
         fetch(scriptURL, { method: 'POST', body: JSON.stringify(formData) })
         .then(() => {
-            Swal.fire('تم بنجاح!', 'تم حفظ الموعد وإرسال إشعار تلغرام', 'success');
+            Swal.fire('تم بنجاح!', 'تم حفظ الموعد ', 'success');
             document.getElementById('bookingForm').reset();
         })
         .catch(() => Swal.fire('خطأ', 'فشل في الاتصال بالخادم', 'error'));
