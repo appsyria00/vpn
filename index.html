@@ -3,21 +3,18 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حجز إدارة التل</title>
-    <link rel="manifest" href="manifest.json">
+    <title>حجز موعد - التل</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body { background: linear-gradient(135deg, #0f2027, #2c5364); color: white; min-height: 100vh; display: flex; align-items: center; }
-        .booking-box { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); border-radius: 25px; padding: 30px; width: 90%; max-width: 450px; margin: auto; border: 1px solid rgba(255,255,255,0.2); }
+        .box { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); border-radius: 25px; padding: 30px; width: 90%; max-width: 400px; margin: auto; border: 1px solid rgba(255,255,255,0.2); }
         .form-control, .form-select { border-radius: 12px; margin-bottom: 15px; border: none; padding: 12px; }
-        .btn-confirm { background: #0088cc; color: white; border: none; padding: 15px; border-radius: 12px; width: 100%; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="booking-box text-center shadow-lg">
-        <h2 class="mb-2">حجز موعد جديد</h2>
-        <p class="text-white-50 mb-4 small">إدارة منطقة التل المدنية</p>
+    <div class="box text-center shadow-lg">
+        <h3 class="mb-4">حجز موعد جديد</h3>
         <form id="f">
             <input type="text" id="n" class="form-control" placeholder="الاسم الكامل" required>
             <input type="tel" id="p" class="form-control" placeholder="رقم الهاتف" required>
@@ -30,18 +27,16 @@
                 <option value="سؤال عام">سؤال عام</option>
                 <option value="استشارة">استشارة</option>
             </select>
-            <button type="submit" class="btn-confirm">تأكيد الحجز</button>
+            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow">تأكيد الحجز</button>
         </form>
         <button onclick="goAdmin()" class="btn btn-link text-white-50 mt-3 small" style="text-decoration:none">دخول الإدارة</button>
     </div>
 
     <script>
-        const api = 'https://script.google.com/macros/s/AKfycbwzQnSarAP-F8ZouRE-LTxoJut9EvuY6RtSXkLGH3lyDhgmHZnMJt4fwXQJdqmtrN8t7g/exec';
-
+        const api = 'https://script.google.com/macros/s/AKfycbyu0l8PAVfBUAlS6bo1QfSjnm3H9qPfeWWgKXxiHBshr0vFzrrtjdc448aBAU3a7ts9fQ/exec';
         document.getElementById('f').onsubmit = async e => {
             e.preventDefault();
             Swal.fire({title:'جاري الحفظ...', allowOutsideClick: false, didOpen:()=>Swal.showLoading()});
-            
             try {
                 await fetch(api, {method:'POST', body: JSON.stringify({
                     name: document.getElementById('n').value,
@@ -51,12 +46,9 @@
                     service: document.getElementById('s').value
                 })});
                 Swal.close();
-                Swal.fire('تم بنجاح!', 'تم تسجيل موعدك وتنبيه الإدارة', 'success');
+                Swal.fire('تم بنجاح!', 'تم تسجيل موعدك', 'success');
                 document.getElementById('f').reset();
-            } catch(e) {
-                Swal.close();
-                Swal.fire('خطأ', 'فشل الإرسال', 'error');
-            }
+            } catch(e) { Swal.close(); Swal.fire('خطأ', 'فشل الإرسال', 'error'); }
         };
 
         async function goAdmin() {
