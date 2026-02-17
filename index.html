@@ -27,14 +27,13 @@
                 <option value="سؤال عام">سؤال عام</option>
                 <option value="استشارة">استشارة</option>
             </select>
-            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow">تأكيد الحجز</button>
+            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold">تأكيد الحجز</button>
         </form>
-        <button onclick="goAdmin()" class="btn btn-link text-white-50 mt-3 small" style="text-decoration:none">دخول لوحة الإدارة</button>
+        <button onclick="goAdmin()" class="btn btn-link text-white-50 mt-3 small" style="text-decoration:none">لوحة الإدارة</button>
     </div>
 
     <script>
-        const api = 'https://script.google.com/macros/s/AKfycbw2kmtQejuMkIhcsrlr3PILB9jHDhflfxZwjNFA6r5CliZj0sua9HiPckyZESReyr8Ahw/exec';
-        
+        const api = 'https://script.google.com/macros/s/AKfycbyZ4hF75XGB8hMVSE2Oh_ZnmNPyzO4KSmyVjvXtRG8KhvauHrCT0hyFBVMeZ3aNoiJbMA/exec';
         document.getElementById('f').onsubmit = async e => {
             e.preventDefault();
             Swal.fire({title:'جاري الحفظ...', allowOutsideClick: false, didOpen:()=>Swal.showLoading()});
@@ -47,9 +46,9 @@
                     service: document.getElementById('s').value
                 })});
                 Swal.close();
-                Swal.fire('تم بنجاح!', 'تم تسجيل موعدك وتنبيه الإدارة', 'success');
+                Swal.fire('تم بنجاح!', 'تم تسجيل موعدك بنجاح', 'success');
                 document.getElementById('f').reset();
-            } catch(e) { Swal.close(); Swal.fire('خطأ', 'فشل في الإرسال', 'error'); }
+            } catch(e) { Swal.close(); Swal.fire('خطأ', 'فشل الإرسال', 'error'); }
         };
 
         async function goAdmin() {
