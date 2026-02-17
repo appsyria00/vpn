@@ -1,0 +1,16 @@
+{
+  "name": "نظام المواعيد VPN",
+  "short_name": "مواعيدي",
+  "description": "نظام حجز مواعيد سريع واحترافي",
+  "start_url": "index.html",
+  "display": "standalone",
+  "background_color": "#0f2027",
+  "theme_color": "#0088cc",
+  "icons": [
+    {
+      "src": "https://cdn-icons-png.flaticon.com/512/2907/2907150.png",
+      "sizes": "512x512",
+      "type": "image/png"
+    }
+  ]
+}
