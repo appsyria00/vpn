@@ -1,34 +1,21 @@
-<div class="text-center mt-4">
-    <button onclick="goToAdmin()" class="btn btn-outline-light btn-sm" style="opacity: 0.6;">
-        <i class="fas fa-user-shield"></i> دخول الإدارة
-    </button>
+<div class="container mb-4">
+    <div class="input-group shadow-sm">
+        <span class="input-group-text bg-white border-0"><i class="fas fa-search text-muted"></i></span>
+        <input type="text" id="searchInput" class="form-control border-0 p-3" placeholder="ابحث بالاسم أو رقم الهاتف..." onkeyup="filterData()">
+    </div>
 </div>
 
 <script>
-    // كلمة المرور مشفرة (SHA-256) لضمان الحماية
-    async function goToAdmin() {
-        const { value: password } = await Swal.fire({
-            title: 'منطقة محظورة',
-            input: 'password',
-            inputLabel: 'أدخل كلمة مرور الإدارة',
-            inputPlaceholder: '********',
-            showCancelButton: true
-        });
-
-        if (password) {
-            // تشفير المدخلات لمقارنتها بالبصمة المشفرة
-            const msgUint8 = new TextEncoder().encode(password);
-            const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
-            const hashArray = Array.from(new Uint8Array(hashBuffer));
-            const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-
-            // البصمة الخاصة بكلمة المرور 20262026
-            const secureHash = "f9a744265405e3f28325a7f51699709d66099b6883259e9882269a84d6350d30";
-
-            if (hashHex === secureHash) {
-                window.location.href = 'admin.html';
+    function filterData() {
+        let input = document.getElementById('searchInput').value.toLowerCase();
+        let cards = document.getElementsByClassName('col-md-6'); // استهداف كروت المواعيد
+        
+        for (let i = 0; i < cards.length; i++) {
+            let name = cards[i].innerText.toLowerCase();
+            if (name.includes(input)) {
+                cards[i].style.display = "";
             } else {
-                Swal.fire('خطأ!', 'كلمة المرور غير صحيحة', 'error');
+                cards[i].style.display = "none";
             }
         }
     }
