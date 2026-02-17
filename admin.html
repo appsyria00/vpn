@@ -3,154 +3,93 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة الإدارة الاحترافية</title>
+    <title>لوحة التحكم الاحترافية</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { --primary-color: #0088cc; --done-color: #6c757d; }
-        body { background-color: #f8f9fa; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        .dashboard-header { background: linear-gradient(135deg, #1a2a6c, #b21f1f, #fdbb2d); color: white; padding: 30px 0; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.2); }
-        .filter-section { background: white; border-radius: 15px; padding: 20px; box-shadow: 0 2px 10px rgba(0,0,0,0.05); margin-bottom: 30px; }
-        
-        /* تصميم الكروت */
-        .appointment-card { background: white; border-radius: 15px; border: none; transition: 0.3s; position: relative; overflow: hidden; border-right: 6px solid var(--primary-color); box-shadow: 0 4px 6px rgba(0,0,0,0.05); }
-        .appointment-card:hover { transform: translateY(-5px); box-shadow: 0 8px 15px rgba(0,0,0,0.1); }
-        
-        /* كرت تم اللقاء */
-        .status-done { opacity: 0.6; filter: grayscale(1); border-right-color: var(--done-color) !important; background: #e9ecef; }
-        .status-done .btn-action { display: none; }
-        
-        .card-label { font-size: 0.8rem; color: #888; margin-bottom: 2px; }
-        .card-value { font-weight: 600; color: #333; margin-bottom: 12px; }
-        .btn-call { background-color: #28a745; color: white; border-radius: 8px; font-weight: bold; width: 100%; }
-        .btn-done { background-color: var(--primary-color); color: white; border-radius: 8px; font-weight: bold; width: 100%; margin-top: 8px; }
-        
-        .badge-status { position: absolute; top: 10px; left: 10px; font-size: 0.7rem; padding: 4px 10px; border-radius: 20px; }
+        body { background: #f0f4f8; font-family: 'Segoe UI', sans-serif; }
+        .nav-header { background: #1a2a6c; color: white; padding: 20px; margin-bottom: 30px; border-bottom: 5px solid #fdbb2d; }
+        .card-apt { border-radius: 15px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.08); transition: 0.3s; border-right: 6px solid #0088cc; background: white; }
+        .done-card { opacity: 0.6; filter: grayscale(0.5); background: #f8f9fa !important; border-right-color: #6c757d !important; }
+        .btn-group-custom { display: flex; gap: 5px; margin-top: 15px; }
     </style>
 </head>
 <body>
 
-<div class="dashboard-header text-center">
-    <div class="container">
-        <h1><i class="fas fa-user-tie"></i> لوحة إدارة المواعيد</h1>
-        <p class="mb-0">تحكم كامل في طلبات اشتراكات VPN والدعم الفني</p>
-    </div>
+<div class="nav-header text-center">
+    <h3><i class="fas fa-user-shield"></i> لوحة إدارة المواعيد</h3>
 </div>
 
 <div class="container">
-    <div class="filter-section">
-        <div class="row g-3">
-            <div class="col-md-5">
-                <div class="input-group">
-                    <span class="input-group-text bg-white"><i class="fas fa-search"></i></span>
-                    <input type="text" id="searchInput" class="form-control border-start-0" placeholder="ابحث بالاسم أو رقم الهاتف..." onkeyup="filterData()">
-                </div>
-            </div>
-            <div class="col-md-4">
-                <div class="input-group">
-                    <span class="input-group-text bg-white"><i class="fas fa-calendar-alt"></i></span>
-                    <input type="date" id="dateFilter" class="form-control border-start-0" onchange="filterData()">
-                </div>
-            </div>
-            <div class="col-md-3">
-                <button class="btn btn-dark w-100" onclick="loadAppointments()">
-                    <i class="fas fa-sync-alt"></i> تحديث المواعيد
-                </button>
-            </div>
-        </div>
+    <div class="row g-3 mb-4 p-3 bg-white rounded shadow-sm">
+        <div class="col-md-5"><input type="text" id="searchInput" class="form-control" placeholder="بحث بالاسم أو الرقم..." onkeyup="filterData()"></div>
+        <div class="col-md-4"><input type="date" id="dateFilter" class="form-control" onchange="filterData()"></div>
+        <div class="col-md-3"><button class="btn btn-primary w-100" onclick="loadData()"><i class="fas fa-sync"></i> تحديث</button></div>
     </div>
 
-    <div id="loading" class="text-center py-5">
-        <div class="spinner-border text-primary" role="status"></div>
-        <p class="mt-2">جاري جلب البيانات من Google Sheets...</p>
-    </div>
-
-    <div class="row" id="appointmentsContainer">
-        </div>
+    <div id="loading" class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+    <div class="row" id="container"></div>
 </div>
 
 <script>
-    const scriptURL = 'https://script.google.com/macros/s/AKfycbzwSIydetGx9HBNMu8orrGrpwlF09Z7ulIkvsj5HWY2mTYxNk8L8QCK3b6qwH7dil7Evw/exec';
-    let allAppointments = [];
+    const apiURL = 'https://script.google.com/macros/s/AKfycbx6xWKYyhOltSUwX4FY0OqdV8PF6qj3_QooF6-Xnziid9VVASiM6sCV1EaV1FVEsLe1Uw/exec';
+    let appointments = [];
 
-    // جلب البيانات
-    async function loadAppointments() {
+    async function loadData() {
         document.getElementById('loading').style.display = 'block';
-        document.getElementById('appointmentsContainer').innerHTML = '';
-        try {
-            const response = await fetch(scriptURL);
-            allAppointments = await response.json();
-            renderCards(allAppointments);
-        } catch (e) {
-            alert('حدث خطأ أثناء جلب البيانات');
-        }
+        const response = await fetch(apiURL);
+        appointments = await response.json();
         document.getElementById('loading').style.display = 'none';
+        filterData();
     }
 
-    // عرض الكروت
-    function renderCards(data) {
-        const container = document.getElementById('appointmentsContainer');
-        container.innerHTML = '';
-        
-        data.reverse().forEach((apt, index) => {
-            const isDone = apt.status === "DONE";
-            const cardHtml = `
-                <div class="col-md-6 col-lg-4 mb-4">
-                    <div class="card appointment-card p-3 ${isDone ? 'status-done' : ''}" id="card-${index}">
-                        ${isDone ? '<span class="badge bg-secondary badge-status">تم اللقاء</span>' : '<span class="badge bg-primary badge-status">موعد نشط</span>'}
-                        
-                        <div class="card-label">اسم العميل</div>
-                        <div class="card-value">${apt.name}</div>
-                        
-                        <div class="card-label">رقم الهاتف</div>
-                        <div class="card-value text-primary">${apt.phone}</div>
-                        
-                        <div class="card-label">الخدمة</div>
-                        <div class="card-value"><span class="badge bg-light text-dark border">${apt.service}</span></div>
-                        
-                        <div class="card-label">تاريخ الموعد</div>
-                        <div class="card-value text-danger"><i class="far fa-calendar-check me-1"></i> ${apt.date}</div>
-                        
-                        <div class="btn-action">
-                            <a href="tel:${apt.phone}" class="btn btn-call mb-2"><i class="fas fa-phone-alt me-2"></i> اتصال</a>
-                            <button onclick="markAsDone('${apt.name}', '${apt.timestamp}', ${index})" class="btn btn-done">
-                                <i class="fas fa-check-double me-2"></i> تم اللقاء
-                            </button>
+    function filterData() {
+        const search = document.getElementById('searchInput').value.toLowerCase();
+        const date = document.getElementById('dateFilter').value;
+        const list = document.getElementById('container');
+        list.innerHTML = '';
+
+        appointments.filter(i => (i.name.toLowerCase().includes(search) || i.phone.includes(search)) && (!date || i.date === date))
+        .reverse().forEach(i => {
+            const isDone = i.status === "DONE";
+            list.innerHTML += `
+                <div class="col-md-4 mb-4">
+                    <div class="card card-apt p-3 ${isDone ? 'done-card' : ''}">
+                        <div class="d-flex justify-content-between mb-2 small text-muted">
+                            <span class="badge bg-light text-dark border">${i.service}</span>
+                            <span>${i.date}</span>
+                        </div>
+                        <h5 class="fw-bold">${i.name}</h5>
+                        <p class="text-primary mb-3"><i class="fas fa-phone"></i> ${i.phone}</p>
+                        <div class="btn-group-custom">
+                            ${!isDone ? `
+                                <button onclick="action('updateStatus', '${i.name}', '${i.timestamp}')" class="btn btn-success btn-sm flex-fill">تم اللقاء</button>
+                                <a href="tel:${i.phone}" class="btn btn-outline-primary btn-sm"><i class="fas fa-phone"></i></a>
+                            ` : '<span class="text-muted small fw-bold"><i class="fas fa-check-double"></i> مكتمل</span>'}
+                            <button onclick="action('deleteRow', '${i.name}', '${i.timestamp}')" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
-                </div>
-            `;
-            container.innerHTML += cardHtml;
+                </div>`;
         });
     }
 
-    // الفلترة
-    function filterData() {
-        const searchText = document.getElementById('searchInput').value.toLowerCase();
-        const filterDate = document.getElementById('dateFilter').value;
+    async function action(type, name, ts) {
+        const confirmMsg = type === 'deleteRow' ? 'هل أنت متأكد من حذف هذا الموعد نهائياً؟' : 'تأكيد إتمام اللقاء؟';
+        const result = await Swal.fire({ title: 'تنبيه', text: confirmMsg, icon: 'warning', showCancelButton: true });
         
-        const filtered = allAppointments.filter(apt => {
-            const matchesSearch = apt.name.toLowerCase().includes(searchText) || apt.phone.includes(searchText);
-            const matchesDate = !filterDate || apt.date === filterDate;
-            return matchesSearch && matchesDate;
-        });
-        renderCards(filtered);
+        if (result.isConfirmed) {
+            Swal.fire({ title: 'جاري المعالجة...', didOpen: () => Swal.showLoading() });
+            await fetch(apiURL, {
+                method: 'POST',
+                body: JSON.stringify({ action: type, name: name, timestamp: ts })
+            });
+            await loadData();
+            Swal.fire('تم!', 'تم تحديث البيانات بنجاح', 'success');
+        }
     }
 
-    // وظيفة "تم اللقاء"
-    async function markAsDone(name, timestamp, cardIndex) {
-        if(!confirm('هل تريد تعليم هذا الموعد كمكتمل؟')) return;
-        
-        // تغيير الشكل فوراً قبل الإرسال لسرعة التفاعل
-        document.getElementById(`card-${cardIndex}`).classList.add('status-done');
-        
-        // إرسال التحديث لـ Google Sheets (يتطلب دالة updateStatus في الكود المصدري)
-        // إذا لم تكن الدالة موجودة، سيبقى التغيير في الصفحة فقط حتى التحديث القادم
-        console.log("إرسال تحديث لـ:", name, timestamp);
-    }
-
-    loadAppointments();
+    loadData();
 </script>
-
 </body>
 </html>
