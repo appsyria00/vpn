@@ -3,93 +3,91 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم الاحترافية</title>
+    <title>لوحة التحكم | إدارة المواعيد</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body { background: #f0f4f8; font-family: 'Segoe UI', sans-serif; }
-        .nav-header { background: #1a2a6c; color: white; padding: 20px; margin-bottom: 30px; border-bottom: 5px solid #fdbb2d; }
-        .card-apt { border-radius: 15px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.08); transition: 0.3s; border-right: 6px solid #0088cc; background: white; }
-        .done-card { opacity: 0.6; filter: grayscale(0.5); background: #f8f9fa !important; border-right-color: #6c757d !important; }
-        .btn-group-custom { display: flex; gap: 5px; margin-top: 15px; }
+        body { background: #f8f9fa; font-family: sans-serif; }
+        .nav-top { background: #1a2a6c; color: white; padding: 20px; margin-bottom: 25px; border-bottom: 4px solid #fdbb2d; }
+        .apt-card { background: white; border-radius: 12px; box-shadow: 0 4px 6px rgba(0,0,0,0.05); border-right: 5px solid #0088cc; transition: 0.3s; }
+        .is-done { opacity: 0.6; background: #e9ecef !important; border-right-color: #6c757d !important; }
+        .btn-group-action { display: flex; gap: 10px; margin-top: 15px; }
     </style>
 </head>
 <body>
 
-<div class="nav-header text-center">
-    <h3><i class="fas fa-user-shield"></i> لوحة إدارة المواعيد</h3>
+<div class="nav-top text-center shadow">
+    <h3><i class="fas fa-user-lock"></i> لوحة الإدارة الاحترافية</h3>
 </div>
 
 <div class="container">
-    <div class="row g-3 mb-4 p-3 bg-white rounded shadow-sm">
-        <div class="col-md-5"><input type="text" id="searchInput" class="form-control" placeholder="بحث بالاسم أو الرقم..." onkeyup="filterData()"></div>
-        <div class="col-md-4"><input type="date" id="dateFilter" class="form-control" onchange="filterData()"></div>
-        <div class="col-md-3"><button class="btn btn-primary w-100" onclick="loadData()"><i class="fas fa-sync"></i> تحديث</button></div>
+    <div class="row g-2 mb-4 p-3 bg-white rounded shadow-sm">
+        <div class="col-md-6"><input type="text" id="q" class="form-control" placeholder="بحث بالاسم أو الرقم..." onkeyup="draw()"></div>
+        <div class="col-md-4"><input type="date" id="d" class="form-control" onchange="draw()"></div>
+        <div class="col-md-2"><button class="btn btn-primary w-100" onclick="load()"><i class="fas fa-sync"></i></button></div>
     </div>
 
-    <div id="loading" class="text-center py-5"><div class="spinner-border text-primary"></div></div>
-    <div class="row" id="container"></div>
+    <div id="loader" class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+    <div class="row" id="output"></div>
 </div>
 
 <script>
-    const apiURL = 'https://script.google.com/macros/s/AKfycbx6xWKYyhOltSUwX4FY0OqdV8PF6qj3_QooF6-Xnziid9VVASiM6sCV1EaV1FVEsLe1Uw/exec';
-    let appointments = [];
+    const api = 'https://script.google.com/macros/s/AKfycbUsM3xIlJkO7EYtxquCu46YNKMIWbbhMDZ9QvdUy9_ZIm-bll3_Y02-c0TP-iHGnnfnA/exec';
+    let list = [];
 
-    async function loadData() {
-        document.getElementById('loading').style.display = 'block';
-        const response = await fetch(apiURL);
-        appointments = await response.json();
-        document.getElementById('loading').style.display = 'none';
-        filterData();
+    async function load() {
+        document.getElementById('loader').style.display = 'block';
+        const res = await fetch(api);
+        list = await res.json();
+        document.getElementById('loader').style.display = 'none';
+        draw();
     }
 
-    function filterData() {
-        const search = document.getElementById('searchInput').value.toLowerCase();
-        const date = document.getElementById('dateFilter').value;
-        const list = document.getElementById('container');
-        list.innerHTML = '';
+    function draw() {
+        const q = document.getElementById('q').value.toLowerCase();
+        const d = document.getElementById('d').value;
+        const out = document.getElementById('output');
+        out.innerHTML = '';
 
-        appointments.filter(i => (i.name.toLowerCase().includes(search) || i.phone.includes(search)) && (!date || i.date === date))
+        list.filter(i => (i.name.toLowerCase().includes(q) || i.phone.includes(q)) && (!d || i.date === d))
         .reverse().forEach(i => {
             const isDone = i.status === "DONE";
-            list.innerHTML += `
-                <div class="col-md-4 mb-4">
-                    <div class="card card-apt p-3 ${isDone ? 'done-card' : ''}">
-                        <div class="d-flex justify-content-between mb-2 small text-muted">
-                            <span class="badge bg-light text-dark border">${i.service}</span>
+            out.innerHTML += `
+                <div class="col-md-4 mb-3">
+                    <div class="apt-card p-3 ${isDone ? 'is-done' : ''}">
+                        <div class="d-flex justify-content-between small text-muted mb-2">
+                            <span class="badge bg-light text-primary border">${i.service}</span>
                             <span>${i.date}</span>
                         </div>
-                        <h5 class="fw-bold">${i.name}</h5>
-                        <p class="text-primary mb-3"><i class="fas fa-phone"></i> ${i.phone}</p>
-                        <div class="btn-group-custom">
+                        <h5 class="fw-bold text-dark">${i.name}</h5>
+                        <p class="text-primary mb-1"><i class="fas fa-phone-alt"></i> ${i.phone}</p>
+                        <div class="btn-group-action">
                             ${!isDone ? `
-                                <button onclick="action('updateStatus', '${i.name}', '${i.timestamp}')" class="btn btn-success btn-sm flex-fill">تم اللقاء</button>
-                                <a href="tel:${i.phone}" class="btn btn-outline-primary btn-sm"><i class="fas fa-phone"></i></a>
-                            ` : '<span class="text-muted small fw-bold"><i class="fas fa-check-double"></i> مكتمل</span>'}
-                            <button onclick="action('deleteRow', '${i.name}', '${i.timestamp}')" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
+                                <button onclick="exe('updateStatus', '${i.name}', '${i.timestamp}')" class="btn btn-success btn-sm flex-fill">تم اللقاء</button>
+                                <a href="tel:${i.phone}" class="btn btn-outline-primary btn-sm px-3"><i class="fas fa-phone"></i></a>
+                            ` : '<span class="text-muted fw-bold small flex-fill">✓ موعد مكتمل</span>'}
+                            <button onclick="exe('deleteRow', '${i.name}', '${i.timestamp}')" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 </div>`;
         });
     }
 
-    async function action(type, name, ts) {
-        const confirmMsg = type === 'deleteRow' ? 'هل أنت متأكد من حذف هذا الموعد نهائياً؟' : 'تأكيد إتمام اللقاء؟';
-        const result = await Swal.fire({ title: 'تنبيه', text: confirmMsg, icon: 'warning', showCancelButton: true });
-        
-        if (result.isConfirmed) {
-            Swal.fire({ title: 'جاري المعالجة...', didOpen: () => Swal.showLoading() });
-            await fetch(apiURL, {
+    async function exe(act, name, ts) {
+        const confirm = await Swal.fire({ title: 'هل أنت متأكد؟', icon: 'warning', showCancelButton: true });
+        if (confirm.isConfirmed) {
+            Swal.fire({ title: 'جاري التنفيذ...', didOpen: () => Swal.showLoading() });
+            await fetch(api, {
                 method: 'POST',
-                body: JSON.stringify({ action: type, name: name, timestamp: ts })
+                body: JSON.stringify({ action: act, name: name, timestamp: ts })
             });
-            await loadData();
-            Swal.fire('تم!', 'تم تحديث البيانات بنجاح', 'success');
+            await load();
+            Swal.fire('نجاح!', 'تم تحديث البيانات بنجاح', 'success');
         }
     }
 
-    loadData();
+    load();
 </script>
 </body>
 </html>
