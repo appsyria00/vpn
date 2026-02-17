@@ -20,24 +20,28 @@
         <div class="row g-2 mb-4 bg-white p-3 rounded shadow-sm">
             <div class="col-md-6"><input type="text" id="q" class="form-control" placeholder="بحث بالاسم أو الرقم..." onkeyup="render()"></div>
             <div class="col-md-4"><input type="date" id="df" class="form-control" onchange="render()"></div>
-            <div class="col-md-2"><button class="btn btn-primary w-100" onclick="load()"><i class="fas fa-sync"></i></button></div>
+            <div class="col-md-2"><button class="btn btn-primary w-100" onclick="load()"><i class="fas fa-sync"></i> تحديث</button></div>
         </div>
-        <div id="loading" class="text-center py-5"><div class="spinner-border text-primary"></div></div>
+        <div id="loading-spinner" class="text-center py-5">
+            <div class="spinner-border text-primary"></div>
+            <p class="mt-2 text-muted">جاري جلب البيانات...</p>
+        </div>
         <div class="row" id="out"></div>
     </div>
 
     <script>
-        const api = 'https://script.google.com/macros/s/AKfycbxRh7yFI6bHP8I0n-gpsnnLKD3ZPKiZiEDgpROjF3XHfJS2KslFf_Kb7wsmHxE3CnwZPw/exec';
+        const api = 'https://script.google.com/macros/s/AKfycbyu0l8PAVfBUAlS6bo1QfSjnm3H9qPfeWWgKXxiHBshr0vFzrrtjdc448aBAU3a7ts9fQ/exec';
         let list = [];
 
         async function load() {
-            document.getElementById('loading').style.display = 'block';
+            document.getElementById('loading-spinner').style.display = 'block';
+            document.getElementById('out').innerHTML = '';
             try {
                 const r = await fetch(api);
                 list = await r.json();
                 render();
-            } catch(e) { Swal.fire('خطأ', 'فشل جلب البيانات', 'error'); }
-            document.getElementById('loading').style.display = 'none';
+            } catch(e) { Swal.fire('خطأ', 'فشل تحميل البيانات', 'error'); }
+            document.getElementById('loading-spinner').style.display = 'none';
         }
 
         function render() {
@@ -58,7 +62,7 @@
                             <h5 class="fw-bold mb-1">${i.name}</h5>
                             <p class="text-primary small mb-3"><i class="fas fa-calendar-day"></i> ${i.date}</p>
                             <div class="d-flex gap-2">
-                                ${!isD ? `<button onclick="act('updateStatus','${i.name}','${i.timestamp}')" class="btn btn-success btn-sm flex-fill">تم اللقاء</button>` : '<span class="flex-fill fw-bold text-muted small text-center">✓ مكتمل ومحفوظ</span>'}
+                                ${!isD ? `<button onclick="act('updateStatus','${i.name}','${i.timestamp}')" class="btn btn-success btn-sm flex-fill">تم اللقاء</button>` : '<span class="flex-fill fw-bold text-muted small text-center">✓ مكتمل</span>'}
                                 <button onclick="act('deleteRow','${i.name}','${i.timestamp}')" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash"></i></button>
                                 <a href="tel:${i.phone}" class="btn btn-outline-primary btn-sm"><i class="fas fa-phone"></i></a>
                             </div>
@@ -68,18 +72,14 @@
         }
 
         async function act(type, n, t) {
-            const conf = await Swal.fire({ title: 'تأكيد العملية؟', icon: 'question', showCancelButton: true, confirmButtonText: 'نعم', cancelButtonText: 'إلغاء' });
+            const conf = await Swal.fire({ title: 'تأكيد العملية؟', showCancelButton: true });
             if(conf.isConfirmed) {
                 Swal.fire({ title: 'جاري التنفيذ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 try {
                     await fetch(api, { method: 'POST', body: JSON.stringify({action: type, name: n, timestamp: t}) });
-                    Swal.close(); // إغلاق المربع فوراً
+                    Swal.close(); 
                     await load();
-                    Swal.fire({ title: 'تمت العملية!', icon: 'success', timer: 1500, showConfirmButton: false });
-                } catch(e) {
-                    Swal.close();
-                    Swal.fire('خطأ', 'حدثت مشكلة في الاتصال', 'error');
-                }
+                } catch(e) { Swal.close(); Swal.fire('خطأ', 'فشل في الاتصال', 'error'); }
             }
         }
         load();
