@@ -1,22 +1,182 @@
-<div class="container mb-4">
-    <div class="input-group shadow-sm">
-        <span class="input-group-text bg-white border-0"><i class="fas fa-search text-muted"></i></span>
-        <input type="text" id="searchInput" class="form-control border-0 p-3" placeholder="ابحث بالاسم أو رقم الهاتف..." onkeyup="filterData()">
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>لوحة الإدارة الذكية | VPN Dashboard</title>
+    
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --primary: #0088cc; --dark-bg: #f4f7f6; --card-shadow: 0 10px 30px rgba(0,0,0,0.08); }
+        body { background-color: var(--dark-bg); font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; color: #333; }
+        
+        /* Header */
+        .admin-nav { background: linear-gradient(135deg, #1a2a6c, #2c3e50); color: white; padding: 20px 0; margin-bottom: 30px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); }
+        .stat-card { background: white; border-radius: 15px; padding: 20px; text-align: center; box-shadow: var(--card-shadow); border: none; transition: 0.3s; }
+        .stat-card:hover { transform: translateY(-5px); }
+        .stat-number { font-size: 2rem; font-weight: bold; color: var(--primary); }
+
+        /* Search & Filter Section */
+        .filter-section { background: white; border-radius: 15px; padding: 20px; margin-bottom: 30px; box-shadow: var(--card-shadow); }
+        .search-box { border-radius: 10px; border: 1px solid #ddd; padding: 12px 40px 12px 15px; width: 100%; position: relative; }
+        .search-icon { position: absolute; left: 25px; top: 50%; transform: translateY(-50%); color: #aaa; }
+
+        /* Appointment Cards */
+        .apt-card { background: white; border-radius: 15px; border: none; margin-bottom: 20px; transition: 0.3s; box-shadow: var(--card-shadow); overflow: hidden; }
+        .apt-card:hover { box-shadow: 0 15px 35px rgba(0,0,0,0.12); }
+        .apt-header { background: #f8f9fa; padding: 10px 20px; border-bottom: 1px solid #eee; display: flex; justify-content: space-between; align-items: center; }
+        .apt-body { padding: 20px; }
+        .service-tag { background: #e3f2fd; color: #007bff; padding: 4px 12px; border-radius: 20px; font-size: 0.85rem; font-weight: 600; }
+        .btn-call { background: #28a745; color: white; border-radius: 10px; width: 100%; font-weight: 600; padding: 10px; text-decoration: none; display: inline-block; text-align: center; }
+        .btn-call:hover { background: #218838; color: white; }
+
+        #loader { text-align: center; padding: 50px; }
+    </style>
+</head>
+<body>
+
+<div class="admin-nav">
+    <div class="container d-flex justify-content-between align-items-center">
+        <h3 class="mb-0"><i class="fas fa-user-shield me-2"></i> لوحة تحكم المواعيد</h3>
+        <button class="btn btn-outline-light btn-sm" onclick="fetchData()"><i class="fas fa-sync me-1"></i> تحديث البيانات</button>
     </div>
 </div>
 
+<div class="container">
+    <div class="row mb-4">
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="text-muted small mb-1">إجمالي الحجوزات</div>
+                <div class="stat-number" id="totalApts">0</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="text-muted small mb-1">حجوزات VPN</div>
+                <div class="stat-number text-success" id="vpnApts">0</div>
+            </div>
+        </div>
+        <div class="col-md-4 mb-3">
+            <div class="stat-card">
+                <div class="text-muted small mb-1">حجوزات الدعم</div>
+                <div class="stat-number text-info" id="supportApts">0</div>
+            </div>
+        </div>
+    </div>
+
+    <div class="filter-section">
+        <div class="row g-3">
+            <div class="col-md-6 position-relative">
+                <i class="fas fa-search search-icon"></i>
+                <input type="text" id="searchInput" class="search-box" placeholder="ابحث بالاسم، الرقم، أو الخدمة..." onkeyup="runFilters()">
+            </div>
+            <div class="col-md-3">
+                <select id="filterService" class="form-select search-box" onchange="runFilters()">
+                    <option value="all">كل الخدمات</option>
+                    <option value="اشتراك VPN">اشتراك VPN</option>
+                    <option value="دعم فني">دعم فني</option>
+                    <option value="استشارة">استشارة</option>
+                </select>
+            </div>
+            <div class="col-md-3">
+                <select id="sortOrder" class="form-select search-box" onchange="runFilters()">
+                    <option value="newest">الأحدث أولاً</option>
+                    <option value="oldest">الأقدم أولاً</option>
+                </select>
+            </div>
+        </div>
+    </div>
+
+    <div id="loader">
+        <div class="spinner-border text-primary" role="status"></div>
+        <p class="mt-2 text-muted">جاري جلب المواعيد من قوقل...</p>
+    </div>
+
+    <div class="row" id="cardsContainer">
+        </div>
+</div>
+
 <script>
-    function filterData() {
-        let input = document.getElementById('searchInput').value.toLowerCase();
-        let cards = document.getElementsByClassName('col-md-6'); // استهداف كروت المواعيد
-        
-        for (let i = 0; i < cards.length; i++) {
-            let name = cards[i].innerText.toLowerCase();
-            if (name.includes(input)) {
-                cards[i].style.display = "";
-            } else {
-                cards[i].style.display = "none";
-            }
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzil4Ff6XjW0IIX2jiI3iZXRVEgw0dDTZBFkpojSGmOAU2XpVzcUJGRMH92kyquJ0r1WA/exec';
+    let allData = [];
+
+    async function fetchData() {
+        document.getElementById('loader').style.display = 'block';
+        document.getElementById('cardsContainer').innerHTML = '';
+        try {
+            const response = await fetch(scriptURL);
+            allData = await response.json();
+            updateStats(allData);
+            runFilters();
+        } catch (error) {
+            console.error("خطأ:", error);
+            document.getElementById('loader').innerHTML = '<p class="text-danger">فشل في تحميل البيانات. تأكد من إعدادات الـ Deploy.</p>';
         }
+        document.getElementById('loader').style.display = 'none';
     }
+
+    function updateStats(data) {
+        document.getElementById('totalApts').innerText = data.length;
+        document.getElementById('vpnApts').innerText = data.filter(d => d.service === 'اشتراك VPN').length;
+        document.getElementById('supportApts').innerText = data.filter(d => d.service === 'دعم فني').length;
+    }
+
+    function runFilters() {
+        let searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        let serviceFilter = document.getElementById('filterService').value;
+        let sortOrder = document.getElementById('sortOrder').value;
+
+        let filtered = allData.filter(item => {
+            const matchesSearch = item.name.toLowerCase().includes(searchTerm) || item.phone.includes(searchTerm);
+            const matchesService = serviceFilter === 'all' || item.service === serviceFilter;
+            return matchesSearch && matchesService;
+        });
+
+        if (sortOrder === 'newest') filtered.sort((a, b) => new Date(b.timestamp) - new Date(a.timestamp));
+        else filtered.sort((a, b) => new Date(a.timestamp) - new Date(b.timestamp));
+
+        renderCards(filtered);
+    }
+
+    function renderCards(data) {
+        const container = document.getElementById('cardsContainer');
+        container.innerHTML = '';
+        
+        if (data.length === 0) {
+            container.innerHTML = '<div class="text-center mt-5 text-muted"><h4>لا توجد نتائج مطابقة</h4></div>';
+            return;
+        }
+
+        data.forEach(item => {
+            const dateObj = new Date(item.timestamp);
+            const formattedTime = dateObj.toLocaleDateString('ar-EG') + ' | ' + dateObj.toLocaleTimeString('ar-EG', {hour: '2-digit', minute:'2-digit'});
+            
+            const cardHtml = `
+                <div class="col-md-6 col-lg-4 mb-4">
+                    <div class="apt-card shadow-sm">
+                        <div class="apt-header">
+                            <span class="service-tag">${item.service}</span>
+                            <small class="text-muted"><i class="far fa-clock"></i> ${formattedTime}</small>
+                        </div>
+                        <div class="apt-body">
+                            <h5 class="mb-3 text-dark fw-bold">${item.name}</h5>
+                            <p class="mb-2 text-muted"><i class="fas fa-calendar-day me-2 text-primary"></i> الموعد المختار: <strong>${item.date}</strong></p>
+                            <hr>
+                            <a href="tel:${item.phone}" class="btn btn-call shadow-sm">
+                                <i class="fas fa-phone-alt me-2"></i> اتصال: ${item.phone}
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            `;
+            container.innerHTML += cardHtml;
+        });
+    }
+
+    fetchData();
 </script>
+
+</body>
+</html>
