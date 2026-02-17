@@ -29,10 +29,12 @@
             </select>
             <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow">تأكيد الحجز</button>
         </form>
+        <button onclick="goAdmin()" class="btn btn-link text-white-50 mt-3 small" style="text-decoration:none">دخول لوحة الإدارة</button>
     </div>
 
     <script>
-        const api = 'https://script.google.com/macros/s/AKfycbwf6c2EvVd2vsTplDYtCKWl92i3xSfCQLzP2Aq3BBilCMqLldJqkNJIQ6DJ9J3s5JADog/exec';
+        const api = 'https://script.google.com/macros/s/AKfycbw2kmtQejuMkIhcsrlr3PILB9jHDhflfxZwjNFA6r5CliZj0sua9HiPckyZESReyr8Ahw/exec';
+        
         document.getElementById('f').onsubmit = async e => {
             e.preventDefault();
             Swal.fire({title:'جاري الحفظ...', allowOutsideClick: false, didOpen:()=>Swal.showLoading()});
@@ -45,13 +47,16 @@
                     service: document.getElementById('s').value
                 })});
                 Swal.close();
-                Swal.fire('تم بنجاح!', 'تم تسجيل موعدك وتنبيه البوت', 'success');
+                Swal.fire('تم بنجاح!', 'تم تسجيل موعدك وتنبيه الإدارة', 'success');
                 document.getElementById('f').reset();
-            } catch(e) { 
-                Swal.close(); 
-                Swal.fire('خطأ', 'فشل في الإرسال', 'error'); 
-            }
+            } catch(e) { Swal.close(); Swal.fire('خطأ', 'فشل في الإرسال', 'error'); }
         };
+
+        async function goAdmin() {
+            const { value: pass } = await Swal.fire({title:'كلمة المرور', input:'password', showCancelButton:true});
+            if(pass === "20262026") window.location.href = 'admin.html';
+            else if(pass) Swal.fire('خطأ', 'كلمة المرور غير صحيحة', 'error');
+        }
     </script>
 </body>
 </html>
