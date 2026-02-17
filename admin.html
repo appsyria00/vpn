@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة إدارة منطقة التل</title>
+    <title>لوحة إدارة التل</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
@@ -27,7 +27,7 @@
     </div>
 
     <script>
-        const api = 'https://script.google.com/macros/s/AKfycbyTGVh_U5a38gHHk19KcT-jmnULx7aOD_DWEzNXhVD91i-YXG3NzkCIygk8EhGt-Dep/exec';
+        const api = 'https://script.google.com/macros/s/AKfycbyu0l8PAVfBUAlS6bo1QfSjnm3H9qPfeWWgKXxiHBshr0vFzrrtjdc448aBAU3a7ts9fQ/exec';
         let list = [];
 
         async function load() {
@@ -43,14 +43,16 @@
 
         function render() {
             const q = document.getElementById('q').value.toLowerCase();
-            const d = document.getElementById('df').value;
+            const dFilter = document.getElementById('df').value;
             const out = document.getElementById('out');
             out.innerHTML = '';
-            list.filter(i => (i.name.toLowerCase().includes(q) || i.phone.includes(q)) && (!d || i.date.includes(d)))
+            
+            list.filter(i => (i.name.toLowerCase().includes(q) || i.phone.includes(q)) && (!dFilter || i.date.includes(dFilter)))
             .reverse().forEach(i => {
                 const isD = i.status === "DONE";
-                // تنظيف التاريخ من أي زوائد T00:00...
-                const cleanDate = i.date.split('T')[0];
+                // تنظيف عرض التاريخ ليظهر YYYY-MM-DD فقط
+                const displayDate = i.date.split('T')[0];
+                
                 out.innerHTML += `
                     <div class="col-md-4 mb-3">
                         <div class="apt-card p-3 ${isD ? 'done' : ''}">
@@ -59,7 +61,7 @@
                                 <span class="text-muted"><i class="far fa-clock"></i> ${i.time}</span>
                             </div>
                             <h5 class="fw-bold mb-1">${i.name}</h5>
-                            <p class="text-primary small mb-3"><i class="fas fa-calendar-day"></i> ${cleanDate}</p>
+                            <p class="text-primary small mb-3"><i class="fas fa-calendar-day"></i> ${displayDate}</p>
                             <div class="d-flex gap-2">
                                 ${!isD ? `<button onclick="act('updateStatus','${i.name}','${i.timestamp}')" class="btn btn-success btn-sm flex-fill">تم اللقاء</button>` : '<span class="flex-fill fw-bold text-muted small text-center">✓ مكتمل</span>'}
                                 <button onclick="act('deleteRow','${i.name}','${i.timestamp}')" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash"></i></button>
@@ -71,14 +73,18 @@
         }
 
         async function act(type, n, t) {
-            const conf = await Swal.fire({ title: 'تأكيد العملية؟', showCancelButton: true });
+            const conf = await Swal.fire({ title: 'تأكيد العملية؟', icon:'question', showCancelButton: true });
             if(conf.isConfirmed) {
                 Swal.fire({ title: 'جاري التنفيذ...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
                 try {
                     await fetch(api, { method: 'POST', body: JSON.stringify({action: type, name: n, timestamp: t}) });
-                    Swal.close(); 
+                    Swal.close(); // إغلاق الدائرة فوراً
                     await load();
-                } catch(e) { Swal.close(); Swal.fire('خطأ', 'فشل العملية', 'error'); }
+                    Swal.fire({ icon: 'success', title: 'تمت العملية', timer: 1000, showConfirmButton: false });
+                } catch(e) { 
+                    Swal.close(); 
+                    Swal.fire('خطأ', 'فشل في الاتصال', 'error'); 
+                }
             }
         }
         load();
