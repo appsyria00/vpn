@@ -1,35 +1,150 @@
-<div class="text-center mt-4">
-    <button onclick="goToAdmin()" class="btn btn-outline-light btn-sm" style="opacity: 0.6;">
-        <i class="fas fa-user-shield"></i> دخول الإدارة
-    </button>
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>نظام حجز المواعيد الذكي</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/animate.css/4.1.1/animate.min.css"/>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    
+    <style>
+        body {
+            background: linear-gradient(135deg, #0f2027, #203a43, #2c5364);
+            color: #fff;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            min-height: 100vh;
+            display: flex;
+            align-items: center;
+        }
+        .booking-container {
+            background: rgba(255, 255, 255, 0.1);
+            backdrop-filter: blur(10px);
+            border-radius: 20px;
+            padding: 40px;
+            box-shadow: 0 25px 50px rgba(0,0,0,0.3);
+            border: 1px solid rgba(255,255,255,0.1);
+            max-width: 500px;
+            width: 100%;
+            margin: 20px auto;
+        }
+        .form-control, .form-select {
+            background: rgba(255, 255, 255, 0.9);
+            border-radius: 10px;
+            border: none;
+            padding: 12px;
+            margin-bottom: 20px;
+            color: #333;
+        }
+        .btn-submit {
+            background: #0088cc;
+            border: none;
+            padding: 15px;
+            border-radius: 10px;
+            font-weight: bold;
+            color: white;
+            width: 100%;
+            transition: 0.3s;
+        }
+        .btn-submit:hover {
+            background: #0077b5;
+            transform: translateY(-2px);
+        }
+        .admin-link-btn {
+            background: transparent;
+            color: rgba(255,255,255,0.5);
+            border: 1px solid rgba(255,255,255,0.2);
+            margin-top: 20px;
+            font-size: 0.8rem;
+            border-radius: 5px;
+            padding: 5px 15px;
+            transition: 0.3s;
+        }
+        .admin-link-btn:hover {
+            color: #fff;
+            border-color: #fff;
+        }
+    </style>
+</head>
+<body>
+
+<div class="container">
+    <div class="booking-container animate__animated animate__fadeIn">
+        <div class="text-center">
+            <h2 class="mb-4">حجز موعد جديد</h2>
+            <p class="text-light-50 mb-4">سجل بياناتك وسيتم إرسال تنبيه للمدير فوراً</p>
+        </div>
+
+        <form id="bookingForm">
+            <input type="text" id="name" class="form-control" placeholder="الاسم الكامل" required>
+            <input type="tel" id="phone" class="form-control" placeholder="رقم الهاتف" required>
+            <input type="date" id="date" class="form-control" required>
+            <select id="service" class="form-select">
+                <option value="اشتراك VPN">اشتراك VPN</option>
+                <option value="دعم فني">دعم فني</option>
+                <option value="استشارة">استشارة</option>
+            </select>
+            <button type="submit" class="btn-submit">تأكيد الحجز وإرسال</button>
+        </form>
+
+        <div class="text-center">
+            <button onclick="goToAdmin()" class="admin-link-btn">
+                <i class="fas fa-lock"></i> لوحة الإدارة
+            </button>
+        </div>
+    </div>
 </div>
 
 <script>
-    // كلمة المرور مشفرة (SHA-256) لضمان الحماية
+    // رابط الـ Script الخاص بك
+    const scriptURL = 'https://script.google.com/macros/s/AKfycbzil4Ff6XjW0IIX2jiI3iZXRVEgw0dDTZBFkpojSGmOAU2XpVzcUJGRMH92kyquJ0r1WA/exec';
+
+    // 1. كود إرسال البيانات
+    document.getElementById('bookingForm').addEventListener('submit', e => {
+        e.preventDefault();
+        Swal.fire({ title: 'جاري الإرسال...', didOpen: () => { Swal.showLoading() } });
+
+        const formData = {
+            name: document.getElementById('name').value,
+            phone: document.getElementById('phone').value,
+            date: document.getElementById('date').value,
+            service: document.getElementById('service').value
+        };
+
+        fetch(scriptURL, { method: 'POST', body: JSON.stringify(formData) })
+        .then(() => {
+            Swal.fire('تم الحجز!', 'وصل التنبيه للمدير عبر تلغرام', 'success');
+            document.getElementById('bookingForm').reset();
+        })
+        .catch(() => Swal.fire('خطأ', 'فشل الإرسال', 'error'));
+    });
+
+    // 2. كود دخول الإدارة مع كلمة مرور مشفرة (20262026)
     async function goToAdmin() {
         const { value: password } = await Swal.fire({
-            title: 'منطقة محظورة',
+            title: 'دخول الإدارة',
             input: 'password',
-            inputLabel: 'أدخل كلمة مرور الإدارة',
-            inputPlaceholder: '********',
+            inputPlaceholder: 'أدخل كلمة المرور',
             showCancelButton: true
         });
 
         if (password) {
-            // تشفير المدخلات لمقارنتها بالبصمة المشفرة
             const msgUint8 = new TextEncoder().encode(password);
             const hashBuffer = await crypto.subtle.digest('SHA-256', msgUint8);
             const hashArray = Array.from(new Uint8Array(hashBuffer));
             const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
 
-            // البصمة الخاصة بكلمة المرور 20262026
+            // هذا التشفير خاص بكلمة 20262026
             const secureHash = "f9a744265405e3f28325a7f51699709d66099b6883259e9882269a84d6350d30";
 
             if (hashHex === secureHash) {
                 window.location.href = 'admin.html';
             } else {
-                Swal.fire('خطأ!', 'كلمة المرور غير صحيحة', 'error');
+                Swal.fire('خطأ', 'كلمة المرور غير صحيحة', 'error');
             }
         }
     }
 </script>
+</body>
+</html>
