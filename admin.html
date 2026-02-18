@@ -3,73 +3,119 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة إدارة إدارة منطقة التل المدنية</title>
+    <title>إدارة المواعيد الذكية - A.M</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body { background: #f4f7f6; font-family: sans-serif; }
-        .nav-head { background: #1a2a6c; color: white; padding: 15px; border-bottom: 5px solid #fdbb2d; }
-        .admin-logo { width: 50px; height: 50px; border-radius: 50%; margin-left: 10px; border: 2px solid white; }
-        .apt-card { background: white; border-radius: 15px; border-right: 6px solid #0088cc; box-shadow: 0 4px 10px rgba(0,0,0,0.05); transition: 0.3s; }
-        .done { opacity: 0.6; filter: grayscale(0.7); background: #e9ecef !important; }
-        .footer-am { text-align: center; padding: 20px; color: #aaa; font-size: 0.8rem; }
+        :root { --primary: #2563eb; --bg: #f8fafc; }
+        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; }
+        .search-box { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 30px; }
+        .appointment-card { background: white; border: none; border-radius: 16px; transition: all 0.3s ease; border-right: 5px solid transparent; }
+        .appointment-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
+        .status-pending { border-right-color: #f59e0b; }
+        .status-done { border-right-color: #10b981; opacity: 0.8; }
+        .badge-time { background: #eff6ff; color: #2563eb; font-weight: 600; }
+        .footer { text-align: center; padding: 40px; color: #94a3b8; font-weight: 500; }
     </style>
 </head>
 <body>
-    <div class="nav-head d-flex align-items-center justify-content-center shadow mb-4">
-        <img src="https://appsyria00.github.io/vpn/1.png" class="admin-logo" alt="Logo">
-        <h3 class="m-0">مواعيد إدارة منطقة التل المدنية</h3>
-    </div>
-    <div class="container">
-        <div class="row g-2 mb-4 bg-white p-3 rounded shadow-sm">
-            <div class="col-md-6"><input type="text" id="q" class="form-control" placeholder="بحث..." onkeyup="render()"></div>
-            <div class="col-md-4"><input type="date" id="df" class="form-control" onchange="render()"></div>
-            <div class="col-md-2"><button class="btn btn-primary w-100" onclick="load()"><i class="fas fa-sync"></i></button></div>
-        </div>
-        <div id="loading-spinner" class="text-center py-5"><div class="spinner-border text-primary"></div></div>
-        <div class="row" id="out"></div>
-        <div class="footer-am">تصميم A.M</div>
+
+<div class="container py-5">
+    <div class="text-center mb-5">
+        <h2 class="fw-bold text-dark">لوحة الإدارة الذكية <span class="text-primary">A.M</span></h2>
+        <p class="text-muted">إدارة المواعيد والفلترة المتقدمة</p>
     </div>
 
-    <script>
-        const api = 'https://script.google.com/macros/s/AKfycbyAbB1mxmyWodroA9Wth-eGHlF3ZA4w54qSVnxzu3K88IzbjZgW27xxBT7RWVKRO1JesA/exec';
-        let list = [];
-        async function load() {
-            document.getElementById('loading-spinner').style.display = 'block';
-            try { const r = await fetch(api); list = await r.json(); render(); } catch(e) { Swal.fire('خطأ', 'فشل التحميل', 'error'); }
-            document.getElementById('loading-spinner').style.display = 'none';
+    <div class="search-box">
+        <div class="row g-3">
+            <div class="col-md-5">
+                <div class="input-group">
+                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" id="searchInput" class="form-control border-start-0" placeholder="ابحث بالاسم، الرقم، أو الخدمة..." onkeyup="filterData()">
+                </div>
+            </div>
+            <div class="col-md-3">
+                <input type="date" id="dateFilter" class="form-control" onchange="filterData()">
+            </div>
+            <div class="col-md-2">
+                <select id="statusFilter" class="form-select" onchange="filterData()">
+                    <option value="">كل الحالات</option>
+                    <option value="PENDING">قيد الانتظار</option>
+                    <option value="DONE">مكتملة</option>
+                </select>
+            </div>
+            <div class="col-md-2">
+                <button class="btn btn-primary w-100 rounded-3" onclick="loadData()"><i class="fas fa-sync"></i> تحديث</button>
+            </div>
+        </div>
+    </div>
+
+    <div id="loading" class="text-center d-none py-5">
+        <div class="spinner-grow text-primary" role="status"></div>
+    </div>
+
+    <div class="row g-4" id="resultsContainer"></div>
+
+    <div class="footer">صنع بكل حب بواسطة A.M &copy; 2026</div>
+</div>
+
+<script>
+    const API_URL = 'ضع_رابط_الـ_Web_App_الجديد_هنا';
+    let allData = [];
+
+    async function loadData() {
+        document.getElementById('loading').classList.remove('d-none');
+        try {
+            const response = await fetch(API_URL);
+            allData = await response.json();
+            displayData(allData);
+        } catch (e) {
+            alert('خطأ في جلب البيانات');
         }
-        function render() {
-            const q = document.getElementById('q').value.toLowerCase();
-            const dFilter = document.getElementById('df').value;
-            const out = document.getElementById('out');
-            out.innerHTML = '';
-            list.filter(i => (i.name.toLowerCase().includes(q) || i.phone.includes(q)) && (!dFilter || i.date.includes(dFilter)))
-            .reverse().forEach(i => {
-                const isD = i.status === "DONE";
-                const cleanDate = i.date.substring(0, 10);
-                out.innerHTML += `
-                    <div class="col-md-4 mb-3">
-                        <div class="apt-card p-3 ${isD ? 'done' : ''}">
-                            <div class="d-flex justify-content-between mb-2 small"><span class="badge bg-info text-dark">${i.service}</span><span>${i.time}</span></div>
-                            <h5 class="fw-bold">${i.name}</h5>
-                            <p class="text-muted small"><i class="fas fa-calendar"></i> ${cleanDate}</p>
-                            <div class="d-flex gap-2">
-                                ${!isD ? `<button onclick="act('updateStatus','${i.name}','${i.timestamp}')" class="btn btn-success btn-sm flex-fill">تم اللقاء</button>` : '<span class="flex-fill text-muted">مكتمل ✓</span>'}
-                                <button onclick="act('deleteRow','${i.name}','${i.timestamp}')" class="btn btn-outline-danger btn-sm"><i class="fas fa-trash"></i></button>
-                                <a href="tel:${i.phone}" class="btn btn-outline-primary btn-sm"><i class="fas fa-phone"></i></a>
-                            </div>
+        document.getElementById('loading').classList.add('d-none');
+    }
+
+    function displayData(data) {
+        const container = document.getElementById('resultsContainer');
+        container.innerHTML = '';
+        
+        data.reverse().forEach(item => {
+            const card = `
+                <div class="col-md-4">
+                    <div class="card appointment-card p-4 ${item.status === 'DONE' ? 'status-done' : 'status-pending'}">
+                        <div class="d-flex justify-content-between mb-3">
+                            <span class="badge badge-time px-3 py-2 rounded-pill">${item.time}</span>
+                            <span class="text-muted small"><i class="far fa-calendar-alt"></i> ${item.date.split('T')[0]}</span>
                         </div>
-                    </div>`;
-            });
-        }
-        async function act(type, n, t) {
-            Swal.fire({title:'جاري التنفيذ...', didOpen:()=>Swal.showLoading()});
-            await fetch(api, {method:'POST', body: JSON.stringify({action:type, name:n, timestamp:t})});
-            Swal.close(); await load();
-        }
-        load();
-    </script>
+                        <h5 class="fw-bold mb-1">${item.name}</h5>
+                        <p class="text-muted small mb-3"><i class="fas fa-tools"></i> ${item.service}</p>
+                        <div class="d-flex gap-2">
+                            <a href="tel:${item.phone}" class="btn btn-outline-primary btn-sm rounded-3 flex-fill"><i class="fas fa-phone-alt"></i> اتصال</a>
+                            <button onclick="updateStatus('${item.name}', '${item.timestamp}')" class="btn ${item.status === 'DONE' ? 'btn-light' : 'btn-success'} btn-sm rounded-3 flex-fill">
+                                ${item.status === 'DONE' ? 'مكتمل' : 'إنهاء'}
+                            </button>
+                        </div>
+                    </div>
+                </div>`;
+            container.innerHTML += card;
+        });
+    }
+
+    function filterData() {
+        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
+        const dateTerm = document.getElementById('dateFilter').value;
+        const statusTerm = document.getElementById('statusFilter').value;
+
+        const filtered = allData.filter(item => {
+            const matchesSearch = item.name.toLowerCase().includes(searchTerm) || item.phone.includes(searchTerm) || item.service.toLowerCase().includes(searchTerm);
+            const matchesDate = !dateTerm || item.date.includes(dateTerm);
+            const matchesStatus = !statusTerm || item.status === statusTerm;
+            return matchesSearch && matchesDate && matchesStatus;
+        });
+        displayData(filtered);
+    }
+
+    window.onload = loadData;
+</script>
 </body>
 </html>
