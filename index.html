@@ -3,18 +3,20 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حجز مواعيد إدارة منطقة التل المدنية </title>
+    <title>حجز مواعيد إدارة منطقة التل</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body { background: linear-gradient(135deg, #0f2027, #2c5364); color: white; min-height: 100vh; display: flex; align-items: center; }
-        .box { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); border-radius: 25px; padding: 30px; width: 90%; max-width: 400px; margin: auto; border: 1px solid rgba(255,255,255,0.2); }
+        body { background: linear-gradient(135deg, #0f2027, #2c5364); color: white; min-height: 100vh; display: flex; align-items: center; font-family: sans-serif; }
+        .box { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); border-radius: 25px; padding: 25px; width: 95%; max-width: 420px; margin: auto; border: 1px solid rgba(255,255,255,0.2); text-center; }
+        .logo { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #fdbb2d; margin-bottom: 15px; }
         .form-control, .form-select { border-radius: 12px; margin-bottom: 15px; border: none; padding: 12px; }
+        .footer-text { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 20px; }
     </style>
 </head>
 <body>
     <div class="box text-center shadow-lg">
-        <h3 class="mb-4">حجز مواعيد إدارة منطقة التل المدنية</h3>
+        <img src="https://i.ibb.co/VpXpXpX/logo.jpg" class="logo" alt="Logo"> <h4 class="mb-4">إدارة منطقة التل المدنية</h4>
         <form id="f">
             <input type="text" id="n" class="form-control" placeholder="الاسم الكامل" required>
             <input type="tel" id="p" class="form-control" placeholder="رقم الهاتف" required>
@@ -27,53 +29,31 @@
                 <option value="سؤال عام">سؤال عام</option>
                 <option value="استشارة">استشارة</option>
             </select>
-            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold">تأكيد الحجز</button>
+            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow">تأكيد الحجز</button>
         </form>
-        <button onclick="goAdmin()" class="btn btn-link text-white-50 mt-3 small" style="text-decoration:none">لوحة الإدارة</button>
+        <button onclick="goAdmin()" class="btn btn-link text-white-50 mt-2 small" style="text-decoration:none">لوحة الإدارة</button>
+        <div class="footer-text">تصميم A.M</div>
     </div>
 
     <script>
-        // الرابط الجديد الذي زودتني به
-        const api = 'https://script.google.com/macros/s/AKfycbyE84E-L17q9kaFhJux-RmcMKJZyr56m7eFtxLzGNFjKlZBcz-Icu0n3vrO2PYExuUMsg/exec';
-
+        const api = 'https://script.google.com/macros/s/AKfycbycS1ebK-iODB83s9XVmAaCUjZiCeU3vNZ6gkpUKgiLNoerDWB-xbMn-1FyTBwPRpxSVw/exec';
         document.getElementById('f').onsubmit = async e => {
             e.preventDefault();
             Swal.fire({title:'جاري الحفظ...', allowOutsideClick: false, didOpen:()=>Swal.showLoading()});
-           
-           try {
-                const response = await fetch(api, {
-                    method:'POST', 
-                    body: JSON.stringify({
-                        name: document.getElementById('n').value,
-                        phone: document.getElementById('p').value,
-                        date: document.getElementById('d').value,
-                        time: document.getElementById('t').value,
-                        service: document.getElementById('s').value
-                    })
-                });
-
+            try {
+                const response = await fetch(api, {method:'POST', body: JSON.stringify({
+                    name: document.getElementById('n').value, phone: document.getElementById('p').value,
+                    date: document.getElementById('d').value, time: document.getElementById('t').value, service: document.getElementById('s').value
+                })});
                 const resData = await response.json();
-                Swal.close(); // إغلاق نافذة "جاري الحفظ"
-                
-                if(resData.status === "exists") {
-                    // إذا كان الاسم أو الرقم مكرر (بناءً على التحديث السابق في Code.gs)
-                    Swal.fire('تنبيه', resData.message, 'warning');
-                } else {
-                    Swal.fire('تم بنجاح!', 'تم تسجيل موعدك بنجاح وتنبيه البوت', 'success');
-                    document.getElementById('f').reset();
-                }
-            } catch(e) { 
-                // تصحيح الخطأ هنا: إغلاق التحميل وإظهار رسالة فشل الاتصال
                 Swal.close();
-                Swal.fire('خطأ', 'فشل في الاتصال بالخادم، يرجى المحاولة لاحقاً', 'error');
-                console.error(e);
-            }
+                if(resData.status === "exists") Swal.fire('تنبيه', resData.message, 'warning');
+                else { Swal.fire('تم بنجاح!', 'تم تسجيل موعدك', 'success'); document.getElementById('f').reset(); }
+            } catch(e) { Swal.close(); Swal.fire('خطأ', 'فشل الاتصال', 'error'); }
         };
-
         async function goAdmin() {
             const { value: pass } = await Swal.fire({title:'كلمة المرور', input:'password', showCancelButton:true});
             if(pass === "20262026") window.location.href = 'admin.html';
-            else if(pass) Swal.fire('خطأ', 'كلمة المرور غير صحيحة', 'error');
         }
     </script>
 </body>
