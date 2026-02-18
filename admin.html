@@ -3,46 +3,53 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>لوحة التحكم - إدارة مدينة التل</title>
+    <title>لوحة المدير - مدينة التل</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; padding-bottom: 50px; }
-        .admin-header { background: #1e293b; padding: 30px; border-bottom: 2px solid #334155; margin-bottom: 25px; text-align: center; }
-        .search-area { background: #1e293b; padding: 20px; border-radius: 20px; margin-bottom: 25px; border: 1px solid #334155; }
-        .apt-card { background: #1e293b; border-radius: 15px; border-right: 6px solid #3b82f6; margin-bottom: 15px; padding: 20px; border-top: 1px solid #334155; }
+        body { background: #020617; color: #f1f5f9; font-family: sans-serif; padding-bottom: 50px; }
+        .admin-header { background: #0f172a; padding: 30px; border-bottom: 2px solid #1e293b; text-align: center; }
+        .header-img { width: 70px; height: 70px; border-radius: 50%; margin-bottom: 10px; border: 2px solid #3b82f6; }
+        .search-area { background: #0f172a; padding: 25px; border-radius: 20px; margin: 20px auto; border: 1px solid #1e293b; max-width: 1000px; }
+        .apt-card { background: #0f172a; border-radius: 18px; border-right: 6px solid #3b82f6; padding: 20px; margin-bottom: 15px; border-top: 1px solid #1e293b; border-left: 1px solid #1e293b; border-bottom: 1px solid #1e293b; transition: 0.3s; }
         .status-done { border-right-color: #10b981; opacity: 0.6; }
-        .form-control { background: #334155; border: 1px solid #475569; color: white; border-radius: 10px; }
-        .form-control:focus { background: #475569; color: white; border-color: #3b82f6; }
-        .btn-update { background: #3b82f6; border: none; font-weight: bold; border-radius: 10px; }
+        .form-control { background: #1e293b; border: 1px solid #334155; color: #fff !important; padding: 12px; border-radius: 10px; }
+        .form-control:focus { border-color: #3b82f6; box-shadow: none; }
+        .btn-update { background: #3b82f6; border: none; font-weight: bold; border-radius: 10px; height: 50px; }
+        .info-label { color: #94a3b8; font-size: 0.85rem; }
+        .info-value { color: #f8fafc; font-weight: 600; }
     </style>
 </head>
 <body>
     <div class="admin-header">
-        <h2 class="fw-bold">إدارة منطقة مدينة التل</h2>
-        <span class="badge bg-primary">لوحة التحكم الذكية - A.M</span>
+        <img src="https://appsyria00.github.io/vpn/1.png" class="header-img" alt="A.M">
+        <h2 class="fw-bold text-white">إدارة مواعيد منطقة التل المدنية</h2>
+        <span class="badge bg-primary px-3 py-2">لوحة مراجعة البيانات - A.M</span>
     </div>
 
-    <div class="container">
+    <div class="container mt-4">
         <div class="search-area">
-            <div class="row g-2">
+            <div class="row g-3">
                 <div class="col-md-5">
-                    <input type="text" id="q" class="form-control" placeholder="🔍 بحث بالاسم أو الرقم..." onkeyup="render()">
+                    <input type="text" id="q" class="form-control" placeholder="🔍 ابحث بالاسم أو رقم الهاتف..." onkeyup="render()">
                 </div>
                 <div class="col-md-4">
                     <input type="date" id="df" class="form-control" onchange="render()">
                 </div>
                 <div class="col-md-3">
-                    <button class="btn btn-update w-100 text-white" onclick="load()">تحديث البيانات</button>
+                    <button class="btn btn-update w-100 text-white" onclick="load()">
+                        <i class="fas fa-sync"></i> تحديث القائمة
+                    </button>
                 </div>
             </div>
         </div>
 
-        <div id="out"></div>
-        <div class="text-center mt-5 text-muted small">تصميم A.M &copy; 2026</div>
+        <div id="out" class="max-width: 1000px; margin: auto;"></div>
+        <div class="text-center mt-5 text-muted small fw-bold text-uppercase">System managed by A.M &copy; 2026</div>
     </div>
 
     <script>
-        const API = 'https://script.google.com/macros/s/AKfycbycQ1WfZL86r3WZArEiVyeUgCEAPnDJvMLsp0_Y_GPuQVyqwxSmdW2fXKGB2LvxHtcjXg/exec';
+        const API = 'https://script.google.com/macros/s/AKfycbzfQMZfsjuGjRpP0ub0VM4ZQd1K4AetReU5TKvMFAoZmp280EIrk6RGTCFlKMGGQdf_ng/exec';
         let list = [];
 
         async function load() {
@@ -50,7 +57,7 @@
                 const r = await fetch(API);
                 list = await r.json();
                 render();
-            } catch(e) { alert("خطأ في جلب البيانات"); }
+            } catch(e) { console.log("Fetch Error"); }
         }
 
         function render() {
@@ -64,15 +71,17 @@
                 const isD = i.status === "DONE";
                 out.innerHTML += `
                 <div class="apt-card ${isD ? 'status-done' : ''}">
-                    <div class="d-flex justify-content-between align-items-center">
-                        <div>
-                            <h5 class="mb-1 fw-bold">${i.name}</h5>
-                            <div class="text-info small">${i.date.split('T')[0]} | ${i.time} | ${i.service}</div>
+                    <div class="d-flex justify-content-between align-items-center flex-wrap">
+                        <div class="mb-2">
+                            <h5 class="mb-1 fw-bold text-white">${i.name}</h5>
+                            <span class="info-label">الهاتف:</span> <span class="info-value">${i.phone}</span><br>
+                            <span class="info-label">الموعد:</span> <span class="info-value text-info">${i.date.split('T')[0]} الساعة ${i.time}</span><br>
+                            <span class="info-label">نوع الطلب:</span> <span class="badge bg-secondary">${i.service}</span>
                         </div>
-                        <div class="d-flex gap-2">
-                            <a href="tel:${i.phone}" class="btn btn-outline-light btn-sm">اتصال</a>
-                            ${!isD ? `<button onclick="act('updateStatus','${i.name}','${i.timestamp}')" class="btn btn-success btn-sm">إتمام</button>` : ''}
-                            <button onclick="act('deleteRow','${i.name}','${i.timestamp}')" class="btn btn-danger btn-sm">حذف</button>
+                        <div class="d-flex gap-2 align-items-center">
+                            <a href="tel:${i.phone}" class="btn btn-outline-info btn-sm"><i class="fas fa-phone"></i></a>
+                            ${!isD ? `<button onclick="act('updateStatus','${i.name}','${i.timestamp}')" class="btn btn-success btn-sm px-3">إتمام</button>` : '<span class="text-success small fw-bold">مكتمل ✓</span>'}
+                            <button onclick="act('deleteRow','${i.name}','${i.timestamp}')" class="btn btn-danger btn-sm"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 </div>`;
