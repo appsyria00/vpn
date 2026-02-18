@@ -6,60 +6,90 @@
     <title>إدارة منطقة مدينة التل - A.M</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <style>
-        body { background: #0f172a; color: white; font-family: sans-serif; }
-        .admin-header { background: #1e293b; padding: 25px; border-bottom: 2px solid #334155; margin-bottom: 20px; }
-        .search-area { background: #1e293b; padding: 15px; border-radius: 12px; margin-bottom: 20px; }
-        .apt-card { background: #1e293b; border-radius: 12px; border-right: 5px solid #3b82f6; margin-bottom: 15px; padding: 15px; }
-        .status-done { border-right-color: #10b981; opacity: 0.6; }
-        .form-control, .form-select { background: #334155; border: none; color: white; }
-        .form-control:focus { background: #475569; color: white; }
+        body { background: #0f172a; color: white; font-family: sans-serif; padding-bottom: 50px; }
+        .admin-header { background: #1e293b; padding: 20px; border-bottom: 2px solid #334155; margin-bottom: 20px; text-align: center; }
+        .search-area { background: #1e293b; padding: 15px; border-radius: 15px; margin-bottom: 20px; box-shadow: 0 4px 15px rgba(0,0,0,0.3); }
+        .apt-card { background: #1e293b; border-radius: 12px; border-right: 5px solid #3b82f6; margin-bottom: 15px; padding: 20px; transition: 0.3s; }
+        .apt-card:hover { transform: scale(1.01); background: #262f3f; }
+        .form-control { background: #334155; border: 1px solid #475569; color: white; border-radius: 10px; }
+        .form-control:focus { background: #475569; color: white; border-color: #3b82f6; box-shadow: none; }
+        .btn-update { background: #3b82f6; border: none; border-radius: 10px; font-weight: bold; }
+        .badge-time { background: #1e3a8a; color: #60a5fa; padding: 5px 12px; border-radius: 20px; font-size: 0.9rem; }
     </style>
 </head>
 <body>
-    <div class="admin-header text-center">
-        <h2>إدارة منطقة مدينة التل</h2>
-        <small>لوحة التحكم الذكية - A.M</small>
+    <div class="admin-header">
+        <h2 class="mb-0">إدارة منطقة مدينة التل</h2>
+        <small class="text-info">لوحة التحكم الذكية - A.M</small>
     </div>
+
     <div class="container">
         <div class="search-area">
             <div class="row g-2">
-                <div class="col-md-8"><input type="text" id="q" class="form-control" placeholder="ابحث بالاسم أو الرقم..." onkeyup="render()"></div>
-                <div class="col-md-4"><button class="btn btn-primary w-100" onclick="load()">تحديث البيانات</button></div>
+                <div class="col-md-5">
+                    <input type="text" id="q" class="form-control" placeholder="🔍 ابحث بالاسم أو الرقم..." onkeyup="render()">
+                </div>
+                <div class="col-md-4">
+                    <input type="date" id="df" class="form-control" onchange="render()">
+                </div>
+                <div class="col-md-3">
+                    <button class="btn btn-update w-100 text-white" onclick="load()">تحديث البيانات</button>
+                </div>
             </div>
         </div>
+
+        <div id="loader" class="text-center d-none py-5"><div class="spinner-border text-primary"></div></div>
         <div id="out"></div>
     </div>
+
     <script>
-        const API = 'https://script.google.com/macros/s/AKfycbw1ercIP8aH_2LLHYvzfKz9JspMs7nBhhOvp69p--yjC5oRO5xakUY7WldML-TTKzuBuQ/exec';
+        const API = 'https://script.google.com/macros/s/AKfycbwsKlJg27Qezc8IV-WEqi4qrg47PDVNG2RKapI6De6acvDT5U2_gVb45kQ0S9mwJRFeGQ/exec';
         let list = [];
+
         async function load() {
-            const r = await fetch(API);
-            list = await r.json();
-            render();
+            document.getElementById('loader').classList.remove('d-none');
+            try {
+                const r = await fetch(API);
+                list = await r.json();
+                render();
+            } catch(e) { console.error("Error loading data"); }
+            document.getElementById('loader').classList.add('d-none');
         }
+
         function render() {
             const q = document.getElementById('q').value.toLowerCase();
+            const dF = document.getElementById('df').value;
             const out = document.getElementById('out');
             out.innerHTML = '';
-            list.filter(i => i.name.toLowerCase().includes(q) || i.phone.includes(q)).reverse().forEach(i => {
+
+            list.filter(i => 
+                (i.name.toLowerCase().includes(q) || i.phone.includes(q)) && 
+                (!dF || i.date.includes(dF))
+            ).reverse().forEach(i => {
                 const isD = i.status === "DONE";
                 out.innerHTML += `
-                <div class="apt-card ${isD ? 'status-done' : ''}">
-                    <div class="d-flex justify-content-between">
-                        <strong>${i.name}</strong>
-                        <span class="text-info">${i.time}</span>
+                <div class="apt-card ${isD ? 'opacity-50' : ''}">
+                    <div class="d-flex justify-content-between align-items-start mb-2">
+                        <div>
+                            <h5 class="mb-1 fw-bold text-white">${i.name}</h5>
+                            <small class="text-muted"><i class="far fa-calendar-alt"></i> ${i.date.split('T')[0]} | ${i.service}</small>
+                        </div>
+                        <span class="badge-time fw-bold">${i.time}</span>
                     </div>
-                    <div class="small text-muted">${i.date.split('T')[0]} - ${i.service}</div>
-                    <div class="mt-2 d-flex gap-2">
-                        ${!isD ? `<button onclick="act('updateStatus','${i.name}','${i.timestamp}')" class="btn btn-success btn-sm">إتمام</button>` : ''}
-                        <button onclick="act('deleteRow','${i.name}','${i.timestamp}')" class="btn btn-danger btn-sm">حذف</button>
+                    <div class="mt-3 d-flex gap-2">
+                        <a href="tel:${i.phone}" class="btn btn-outline-info btn-sm px-3">اتصال</a>
+                        ${!isD ? `<button onclick="act('updateStatus','${i.name}','${i.timestamp}')" class="btn btn-success btn-sm px-3">إتمام</button>` : '<span class="text-success small align-self-center">تم الإتمام ✓</span>'}
+                        <button onclick="act('deleteRow','${i.name}','${i.timestamp}')" class="btn btn-outline-danger btn-sm">حذف</button>
                     </div>
                 </div>`;
             });
         }
+
         async function act(type, n, ts) {
-            await fetch(API, {method: 'POST', body: JSON.stringify({action: type, name: n, timestamp: ts})});
-            load();
+            if(confirm('هل أنت متأكد من هذا الإجراء؟')) {
+                await fetch(API, {method: 'POST', body: JSON.stringify({action: type, name: n, timestamp: ts})});
+                load();
+            }
         }
         window.onload = load;
     </script>
