@@ -3,58 +3,59 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>حجز مواعيد إدارة منطقة التل</title>
+    <title>حجز موعد - إدارة التل</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        body { background: linear-gradient(135deg, #0f2027, #2c5364); color: white; min-height: 100vh; display: flex; align-items: center; font-family: sans-serif; }
-        .box { background: rgba(255, 255, 255, 0.1); backdrop-filter: blur(15px); border-radius: 25px; padding: 25px; width: 95%; max-width: 420px; margin: auto; border: 1px solid rgba(255,255,255,0.2); text-center; }
-        .logo { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid #fdbb2d; margin-bottom: 15px; }
-        .form-control, .form-select { border-radius: 12px; margin-bottom: 15px; border: none; padding: 12px; }
-        .footer-text { font-size: 0.8rem; color: rgba(255,255,255,0.5); margin-top: 20px; }
+        body { background: linear-gradient(135deg, #1e3a8a 0%, #3b82f6 100%); min-height: 100vh; display: flex; align-items: center; font-family: sans-serif; }
+        .booking-card { background: white; border-radius: 25px; padding: 30px; box-shadow: 0 15px 35px rgba(0,0,0,0.2); width: 100%; max-width: 450px; margin: auto; }
+        .profile-img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 4px solid #fdbb2d; margin: 0 auto 15px; display: block; }
+        .btn-submit { background: #1e3a8a; color: white; border-radius: 12px; padding: 12px; font-weight: bold; width: 100%; border: none; transition: 0.3s; }
+        .btn-submit:hover { background: #162a63; transform: scale(1.02); }
+        .footer-am { text-align: center; margin-top: 15px; font-size: 0.8rem; color: #666; font-weight: bold; }
     </style>
 </head>
 <body>
-    <div class="box text-center shadow-lg">
-        <img src="https://appsyria00.github.io/vpn/1.png" class="logo" alt="Logo"> <h4 class="mb-4">إدارة منطقة التل المدنية</h4>
-        <form id="f">
-            <input type="text" id="n" class="form-control" placeholder="الاسم الكامل" required>
-            <input type="tel" id="p" class="form-control" placeholder="رقم الهاتف" required>
-            <div class="row g-2">
-                <div class="col-7"><input type="date" id="d" class="form-control" required></div>
-                <div class="col-5"><input type="time" id="t" class="form-control" required></div>
-            </div>
-            <select id="s" class="form-select">
-                <option value="مستعجل">مستعجل</option>
-                <option value="سؤال عام">سؤال عام</option>
-                <option value="استشارة">استشارة</option>
-            </select>
-            <button type="submit" class="btn btn-primary w-100 py-3 fw-bold shadow">تأكيد الحجز</button>
-        </form>
-        <button onclick="goAdmin()" class="btn btn-link text-white-50 mt-2 small" style="text-decoration:none">لوحة الإدارة</button>
-        <div class="footer-text">تصميم A.M</div>
+    <div class="container">
+        <div class="booking-card">
+            <img src="رابط_صورتك_هنا" class="profile-img" alt="Logo">
+            <h4 class="text-center fw-bold mb-4">إدارة منطقة التل المدنية</h4>
+            <form id="bookingForm">
+                <div class="mb-3"><input type="text" name="name" class="form-control" placeholder="الاسم الكامل" required></div>
+                <div class="mb-3"><input type="tel" name="phone" class="form-control" placeholder="رقم الهاتف" required></div>
+                <div class="row g-2 mb-3">
+                    <div class="col-6"><input type="date" name="date" class="form-control" required></div>
+                    <div class="col-6"><input type="time" name="time" class="form-control" required></div>
+                </div>
+                <div class="mb-4">
+                    <select name="service" class="form-select" required>
+                        <option value="">اختر نوع الخدمة...</option>
+                        <option value="تسجيل مدني">تسجيل مدني</option>
+                        <option value="بطاقة شخصية">بطاقة شخصية</option>
+                        <option value="جواز سفر">جواز سفر</option>
+                    </select>
+                </div>
+                <button type="submit" class="btn-submit">تأكيد الحجز الآن</button>
+            </form>
+            <div class="footer-am">تصميم A.M</div>
+        </div>
     </div>
 
     <script>
-        const api = 'https://script.google.com/macros/s/AKfycbzLW0VCldjXIV-ZjKDB10p9vnHWgC8yk6g0kTxdArfX4pSV9A39n22bXK5V92_ki8-muw/exec';
-        document.getElementById('f').onsubmit = async e => {
+        const API = 'https://script.google.com/macros/s/AKfycbzfQMZfsjuGjRpP0ub0VM4ZQd1K4AetReU5TKvMFAoZmp280EIrk6RGTCFlKMGGQdf_ng/exec';
+        document.getElementById('bookingForm').onsubmit = async (e) => {
             e.preventDefault();
-            Swal.fire({title:'جاري الحفظ...', allowOutsideClick: false, didOpen:()=>Swal.showLoading()});
+            Swal.fire({ title: 'جاري الإرسال...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
+            const formData = new FormData(e.target);
+            const data = Object.fromEntries(formData);
             try {
-                const response = await fetch(api, {method:'POST', body: JSON.stringify({
-                    name: document.getElementById('n').value, phone: document.getElementById('p').value,
-                    date: document.getElementById('d').value, time: document.getElementById('t').value, service: document.getElementById('s').value
-                })});
-                const resData = await response.json();
-                Swal.close();
-                if(resData.status === "exists") Swal.fire('تنبيه', resData.message, 'warning');
-                else { Swal.fire('تم بنجاح!', 'تم تسجيل موعدك', 'success'); document.getElementById('f').reset(); }
-            } catch(e) { Swal.close(); Swal.fire('خطأ', 'فشل الاتصال', 'error'); }
+                const res = await fetch(API, { method: 'POST', body: JSON.stringify(data) });
+                const result = await res.json();
+                if(result.status === 'exists') return Swal.fire('عذراً', 'هذا الموعد محجوز مسبقاً', 'warning');
+                Swal.fire('تم بنجاح', 'تم تسجيل موعدك وتنبيه الإدارة', 'success');
+                e.target.reset();
+            } catch (err) { Swal.fire('خطأ', 'فشل الاتصال بالسيرفر', 'error'); }
         };
-        async function goAdmin() {
-            const { value: pass } = await Swal.fire({title:'كلمة المرور', input:'password', showCancelButton:true});
-            if(pass === "0968899922") window.location.href = 'admin.html';
-        }
     </script>
 </body>
 </html>
