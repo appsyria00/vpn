@@ -33,28 +33,41 @@
     </div>
 
     <script>
+        // الرابط الجديد الذي زودتني به
         const api = 'https://script.google.com/macros/s/AKfycbyE84E-L17q9kaFhJux-RmcMKJZyr56m7eFtxLzGNFjKlZBcz-Icu0n3vrO2PYExuUMsg/exec';
+
         document.getElementById('f').onsubmit = async e => {
             e.preventDefault();
             Swal.fire({title:'جاري الحفظ...', allowOutsideClick: false, didOpen:()=>Swal.showLoading()});
+           
            try {
-                const response = await fetch(api, {method:'POST', body: JSON.stringify({
-                    name: document.getElementById('n').value,
-                    phone: document.getElementById('p').value,
-                    date: document.getElementById('d').value,
-                    time: document.getElementById('t').value,
-                    service: document.getElementById('s').value
-                })});
+                const response = await fetch(api, {
+                    method:'POST', 
+                    body: JSON.stringify({
+                        name: document.getElementById('n').value,
+                        phone: document.getElementById('p').value,
+                        date: document.getElementById('d').value,
+                        time: document.getElementById('t').value,
+                        service: document.getElementById('s').value
+                    })
+                });
+
                 const resData = await response.json();
-                Swal.close();
+                Swal.close(); // إغلاق نافذة "جاري الحفظ"
                 
                 if(resData.status === "exists") {
+                    // إذا كان الاسم أو الرقم مكرر (بناءً على التحديث السابق في Code.gs)
                     Swal.fire('تنبيه', resData.message, 'warning');
                 } else {
-                    Swal.fire('تم بنجاح!', 'تم تسجيل موعدك بنجاح', 'success');
+                    Swal.fire('تم بنجاح!', 'تم تسجيل موعدك بنجاح وتنبيه البوت', 'success');
                     document.getElementById('f').reset();
                 }
-            } catch(e) { ... }
+            } catch(e) { 
+                // تصحيح الخطأ هنا: إغلاق التحميل وإظهار رسالة فشل الاتصال
+                Swal.close();
+                Swal.fire('خطأ', 'فشل في الاتصال بالخادم، يرجى المحاولة لاحقاً', 'error');
+                console.error(e);
+            }
         };
 
         async function goAdmin() {
