@@ -11,8 +11,8 @@
         body { background: #020617; color: #f8fafc; min-height: 100vh; display: flex; align-items: center; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
         .booking-card { background: #0f172a; border-radius: 25px; padding: 40px; box-shadow: 0 0 30px rgba(59, 130, 246, 0.2); width: 100%; max-width: 440px; margin: auto; border: 1px solid #1e293b; position: relative; }
         .logo-box { text-align: center; margin-bottom: 25px; }
-        .profile-img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid #3b82f6; padding: 5px; background: #1e293b; transition: 0.4s; }
-        .profile-img:hover { transform: rotate(360deg) scale(1.1); border-color: #fdbb2d; }
+        .profile-img { width: 100px; height: 100px; border-radius: 50%; border: 3px solid #3b82f6; padding: 5px; background: #1e293b; transition: 0.4s; cursor: pointer; }
+        .profile-img:hover { transform: scale(1.1); border-color: #fdbb2d; }
         h2 { color: #f8fafc; font-weight: 800; font-size: 1.6rem; margin-bottom: 5px; }
         .sub-title { color: #3b82f6; font-weight: 600; font-size: 0.9rem; letter-spacing: 1px; }
         .form-control, .form-select { background: #1e293b; border: 1px solid #334155; color: #ffffff !important; border-radius: 12px; padding: 13px; font-weight: 500; }
@@ -21,7 +21,7 @@
         .btn-submit { background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); color: white; border-radius: 15px; padding: 15px; font-weight: 700; width: 100%; border: none; margin-top: 15px; transition: 0.3s; }
         .btn-submit:hover { transform: translateY(-3px); box-shadow: 0 10px 20px rgba(37, 99, 235, 0.4); }
         .footer-am { text-align: center; margin-top: 25px; font-size: 0.8rem; color: #64748b; font-weight: bold; }
-        .admin-secret { position: absolute; bottom: 15px; right: 20px; color: #1e293b; text-decoration: none; transition: 0.3s; }
+        .admin-secret { position: absolute; bottom: 15px; right: 20px; color: #1e293b; text-decoration: none; transition: 0.3s; cursor: pointer; }
         .admin-secret:hover { color: #3b82f6; }
     </style>
 </head>
@@ -29,7 +29,7 @@
     <div class="container">
         <div class="booking-card">
             <div class="logo-box">
-                <a href="admin.html"><img src="https://appsyria00.github.io/vpn/1.png" class="profile-img" alt="A.M Logo"></a>
+                <img src="https://appsyria00.github.io/vpn/1.png" class="profile-img" alt="A.M Logo" onclick="goToAdmin()">
                 <h2 class="mt-3">إدارة مواعيد منطقة التل المدنية</h2>
                 <div class="sub-title text-uppercase">الخدمات الإلكترونية الذكية</div>
             </div>
@@ -45,17 +45,42 @@
                         <option value="">نوع الخدمة المطلوبة...</option>
                         <option value="طلب استشارة">طلب استشارة</option>
                         <option value="حجز موعد مراجعة">حجز موعد مراجعة</option>
-                        <option value="متابعة ملف قانوني">متابعة ملف</option>
                     </select>
                 </div>
                 <button type="submit" class="btn-submit">تأكيد الحجز الآن</button>
             </form>
             <div class="footer-am text-uppercase">Design by A.M</div>
-            <a href="admin.html" class="admin-secret"><i class="fas fa-user-shield"></i></a>
+            
+            <div class="admin-secret" onclick="goToAdmin()"><i class="fas fa-user-shield"></i></div>
         </div>
     </div>
+
     <script>
         const API = 'https://script.google.com/macros/s/AKfycbycQ1WfZL86r3WZArEiVyeUgCEAPnDJvMLsp0_Y_GPuQVyqwxSmdW2fXKGB2LvxHtcjXg/exec';
+
+        // دالة الدخول السري بكلمة مرور
+        async function goToAdmin() {
+            const { value: password } = await Swal.fire({
+                title: 'منطقة محظورة',
+                input: 'password',
+                inputLabel: 'أدخل كلمة مرور المدير للدخول',
+                inputPlaceholder: '••••••••',
+                inputAttributes: {
+                    autocapitalize: 'off',
+                    autocorrect: 'off'
+                },
+                showCancelButton: true,
+                confirmButtonText: 'دخول',
+                cancelButtonText: 'إلغاء'
+            });
+
+            if (password === '0968899922') {
+                window.location.href = 'admin.html';
+            } else if (password) {
+                Swal.fire('خطأ', 'كلمة المرور غير صحيحة!', 'error');
+            }
+        }
+
         document.getElementById('bookingForm').onsubmit = async (e) => {
             e.preventDefault();
             Swal.fire({ title: 'جاري تسجيل طلبك...', allowOutsideClick: false, didOpen: () => Swal.showLoading() });
