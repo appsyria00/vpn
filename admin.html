@@ -3,119 +3,107 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>إدارة المواعيد الذكية - A.M</title>
+    <title>لوحة إدارة التل - A.M</title>
     <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
-        :root { --primary: #2563eb; --bg: #f8fafc; }
-        body { background: var(--bg); font-family: 'Segoe UI', sans-serif; }
-        .search-box { background: white; border-radius: 20px; padding: 25px; box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); margin-bottom: 30px; }
-        .appointment-card { background: white; border: none; border-radius: 16px; transition: all 0.3s ease; border-right: 5px solid transparent; }
-        .appointment-card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0,0,0,0.1); }
-        .status-pending { border-right-color: #f59e0b; }
-        .status-done { border-right-color: #10b981; opacity: 0.8; }
-        .badge-time { background: #eff6ff; color: #2563eb; font-weight: 600; }
-        .footer { text-align: center; padding: 40px; color: #94a3b8; font-weight: 500; }
+        body { background: #f8fafc; font-family: 'Segoe UI', Tahoma, sans-serif; }
+        .hero { background: #1e3a8a; color: white; padding: 30px 0; border-radius: 0 0 40px 40px; margin-bottom: 30px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+        .search-card { background: white; border-radius: 20px; padding: 20px; box-shadow: 0 10px 25px rgba(0,0,0,0.05); }
+        .apt-card { background: white; border-radius: 18px; border: none; box-shadow: 0 5px 15px rgba(0,0,0,0.05); transition: 0.3s; border-right: 6px solid #2563eb; height: 100%; }
+        .apt-card:hover { transform: translateY(-5px); }
+        .status-done { border-right-color: #10b981; opacity: 0.7; }
+        .footer-am { text-align: center; padding: 40px; color: #94a3b8; font-weight: bold; letter-spacing: 1px; }
     </style>
 </head>
 <body>
-
-<div class="container py-5">
-    <div class="text-center mb-5">
-        <h2 class="fw-bold text-dark">لوحة الإدارة الذكية <span class="text-primary">A.M</span></h2>
-        <p class="text-muted">إدارة المواعيد والفلترة المتقدمة</p>
+    <div class="hero text-center">
+        <h3>إدارة منطقة التل المدنية</h3>
+        <span class="badge bg-warning text-dark">نظام إدارة المواعيد الذكي</span>
     </div>
 
-    <div class="search-box">
-        <div class="row g-3">
-            <div class="col-md-5">
-                <div class="input-group">
-                    <span class="input-group-text bg-transparent border-end-0"><i class="fas fa-search text-muted"></i></span>
-                    <input type="text" id="searchInput" class="form-control border-start-0" placeholder="ابحث بالاسم، الرقم، أو الخدمة..." onkeyup="filterData()">
+    <div class="container">
+        <div class="search-card mb-5">
+            <div class="row g-3">
+                <div class="col-md-5"><div class="input-group">
+                    <span class="input-group-text bg-white border-end-0"><i class="fas fa-search text-muted"></i></span>
+                    <input type="text" id="q" class="form-control border-start-0" placeholder="ابحث بالاسم، الهاتف، الخدمة..." onkeyup="render()">
+                </div></div>
+                <div class="col-md-3"><input type="date" id="df" class="form-control" onchange="render()"></div>
+                <div class="col-md-2">
+                    <select id="sf" class="form-select" onchange="render()">
+                        <option value="">كل الحالات</option>
+                        <option value="PENDING">بالانتظار</option>
+                        <option value="DONE">مكتملة</option>
+                    </select>
                 </div>
-            </div>
-            <div class="col-md-3">
-                <input type="date" id="dateFilter" class="form-control" onchange="filterData()">
-            </div>
-            <div class="col-md-2">
-                <select id="statusFilter" class="form-select" onchange="filterData()">
-                    <option value="">كل الحالات</option>
-                    <option value="PENDING">قيد الانتظار</option>
-                    <option value="DONE">مكتملة</option>
-                </select>
-            </div>
-            <div class="col-md-2">
-                <button class="btn btn-primary w-100 rounded-3" onclick="loadData()"><i class="fas fa-sync"></i> تحديث</button>
+                <div class="col-md-2"><button class="btn btn-primary w-100 rounded-3" onclick="load()"><i class="fas fa-sync"></i></button></div>
             </div>
         </div>
+
+        <div id="loader" class="text-center py-5 d-none"><div class="spinner-grow text-primary"></div></div>
+        <div class="row g-4" id="out"></div>
+        <div class="footer-am small">تصميم A.M &copy; 2026</div>
     </div>
 
-    <div id="loading" class="text-center d-none py-5">
-        <div class="spinner-grow text-primary" role="status"></div>
-    </div>
+    <script>
+        const API_URL = 'ضع_رابط_الـ_Web_App_الجديد_هنا';
+        let list = [];
 
-    <div class="row g-4" id="resultsContainer"></div>
-
-    <div class="footer">صنع بكل حب بواسطة A.M &copy; 2026</div>
-</div>
-
-<script>
-    const API_URL = 'https://script.google.com/macros/s/AKfycbxLk5XTHesxo-YMITsr-HU7TD5PQ9LQuWs4q_TXEK5C3blEy-Nz7Z67aGnXLrH-hMjyZQ/exec';
-    let allData = [];
-
-    async function loadData() {
-        document.getElementById('loading').classList.remove('d-none');
-        try {
-            const response = await fetch(API_URL);
-            allData = await response.json();
-            displayData(allData);
-        } catch (e) {
-            alert('خطأ في جلب البيانات');
+        async function load() {
+            document.getElementById('loader').classList.remove('d-none');
+            document.getElementById('out').innerHTML = '';
+            try {
+                const r = await fetch(API_URL);
+                list = await r.json();
+                render();
+            } catch(e) { Swal.fire('خطأ', 'فشل الاتصال بالسيرفر', 'error'); }
+            document.getElementById('loader').classList.add('d-none');
         }
-        document.getElementById('loading').classList.add('d-none');
-    }
 
-    function displayData(data) {
-        const container = document.getElementById('resultsContainer');
-        container.innerHTML = '';
-        
-        data.reverse().forEach(item => {
-            const card = `
+        function render() {
+            const q = document.getElementById('q').value.toLowerCase();
+            const dF = document.getElementById('df').value;
+            const sF = document.getElementById('sf').value;
+            const out = document.getElementById('out');
+            out.innerHTML = '';
+
+            const filtered = list.filter(i => 
+                (i.name.toLowerCase().includes(q) || i.phone.includes(q) || i.service.toLowerCase().includes(q)) &&
+                (!dF || i.date.includes(dF)) &&
+                (!sF || i.status === sF)
+            );
+
+            filtered.reverse().forEach(i => {
+                const isD = i.status === "DONE";
+                out.innerHTML += `
                 <div class="col-md-4">
-                    <div class="card appointment-card p-4 ${item.status === 'DONE' ? 'status-done' : 'status-pending'}">
-                        <div class="d-flex justify-content-between mb-3">
-                            <span class="badge badge-time px-3 py-2 rounded-pill">${item.time}</span>
-                            <span class="text-muted small"><i class="far fa-calendar-alt"></i> ${item.date.split('T')[0]}</span>
+                    <div class="apt-card p-4 ${isD ? 'status-done' : ''}">
+                        <div class="d-flex justify-content-between align-items-center mb-3">
+                            <span class="badge bg-light text-primary p-2 px-3 rounded-pill">${i.service}</span>
+                            <span class="fw-bold text-dark">${i.time}</span>
                         </div>
-                        <h5 class="fw-bold mb-1">${item.name}</h5>
-                        <p class="text-muted small mb-3"><i class="fas fa-tools"></i> ${item.service}</p>
+                        <h5 class="fw-bold mb-2">${i.name}</h5>
+                        <p class="text-muted small mb-4"><i class="far fa-calendar-alt"></i> ${i.date.split('T')[0]}</p>
                         <div class="d-flex gap-2">
-                            <a href="tel:${item.phone}" class="btn btn-outline-primary btn-sm rounded-3 flex-fill"><i class="fas fa-phone-alt"></i> اتصال</a>
-                            <button onclick="updateStatus('${item.name}', '${item.timestamp}')" class="btn ${item.status === 'DONE' ? 'btn-light' : 'btn-success'} btn-sm rounded-3 flex-fill">
-                                ${item.status === 'DONE' ? 'مكتمل' : 'إنهاء'}
-                            </button>
+                            <a href="tel:${i.phone}" class="btn btn-outline-primary btn-sm flex-fill rounded-3"><i class="fas fa-phone-alt"></i></a>
+                            ${!isD ? `<button onclick="act('updateStatus','${i.name}','${i.timestamp}')" class="btn btn-success btn-sm flex-fill rounded-3 shadow-sm">إتمام</button>` : '<span class="text-success fw-bold small flex-fill text-center">✓ مكتمل</span>'}
+                            <button onclick="act('deleteRow','${i.name}','${i.timestamp}')" class="btn btn-outline-danger btn-sm rounded-3"><i class="fas fa-trash"></i></button>
                         </div>
                     </div>
                 </div>`;
-            container.innerHTML += card;
-        });
-    }
+            });
+        }
 
-    function filterData() {
-        const searchTerm = document.getElementById('searchInput').value.toLowerCase();
-        const dateTerm = document.getElementById('dateFilter').value;
-        const statusTerm = document.getElementById('statusFilter').value;
-
-        const filtered = allData.filter(item => {
-            const matchesSearch = item.name.toLowerCase().includes(searchTerm) || item.phone.includes(searchTerm) || item.service.toLowerCase().includes(searchTerm);
-            const matchesDate = !dateTerm || item.date.includes(dateTerm);
-            const matchesStatus = !statusTerm || item.status === statusTerm;
-            return matchesSearch && matchesDate && matchesStatus;
-        });
-        displayData(filtered);
-    }
-
-    window.onload = loadData;
-</script>
+        async function act(type, n, ts) {
+            Swal.fire({title: 'جاري المعالجة...', allowOutsideClick: false, didOpen: () => Swal.showLoading()});
+            try {
+                await fetch(API_URL, {method: 'POST', body: JSON.stringify({action: type, name: n, timestamp: ts})});
+                Swal.close(); load();
+            } catch(e) { Swal.fire('خطأ', 'تعذر تنفيذ العملية', 'error'); }
+        }
+        window.onload = load;
+    </script>
 </body>
 </html>
